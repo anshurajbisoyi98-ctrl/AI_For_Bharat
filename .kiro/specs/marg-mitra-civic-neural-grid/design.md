@@ -2,16 +2,16 @@
 
 ## Overview
 
-MargMitra is a civic safety platform architected as a node in the India Stack ecosystem. The system follows a three-layer architecture: (1) Linguistic Layer for vernacular voice interaction, (2) Intelligence Layer for spatial safety analysis and routing, and (3) Discovery Layer for decentralized emergency response coordination.
+MargMitra is a civic safety platform built using the MERN stack (MongoDB, Express.js, React, Node.js). The system follows a three-layer architecture: (1) Voice Interaction Layer for multilingual voice commands, (2) Intelligence Layer for spatial safety analysis and routing, and (3) Response Coordination Layer for emergency response management.
 
-The design prioritizes offline-first operation, ensuring core functionality remains available without internet connectivity. This is achieved through local caching of vector maps (PMTiles), local-first database synchronization (WatermelonDB), and edge AI processing (YAMNet for acoustic detection).
+The design prioritizes real-time operation with offline fallback capabilities. This is achieved through React Progressive Web App (PWA) features, MongoDB for flexible data storage, and Node.js microservices for scalable backend processing.
 
 **Key Design Principles**:
-- **Offline-First Sovereignty**: All critical features work without internet; sync when available
-- **Linguistic Inclusion**: Voice-first interaction in 10+ Indian languages via Bhashini and IndicBERT
-- **Decentralized Safety**: Emergency response distributed across volunteers, NGOs, private security, and government
-- **Privacy by Design**: Location data anonymized using H3 hexagons; end-to-end encryption for sensitive data
-- **Edge Intelligence**: Audio processing and basic NER run locally to minimize latency and preserve privacy
+- **Progressive Web App**: Core features work offline via service workers; sync when available
+- **Multilingual Support**: Voice-first interaction using Web Speech API and cloud translation services
+- **Coordinated Safety**: Emergency response coordinated across volunteers, NGOs, private security, and government
+- **Privacy by Design**: Location data anonymized using geohashing; HTTPS encryption for all data transmission
+- **Real-time Updates**: WebSocket connections for live safety updates and emergency broadcasts
 
 ## Architecture
 
