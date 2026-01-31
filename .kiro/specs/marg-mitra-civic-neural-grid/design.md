@@ -18,63 +18,63 @@ The design prioritizes offline-first operation, ensuring core functionality rema
 ### System Architecture Diagram
 
 ```mermaid
-graph TB
-    subgraph "Client Layer (Android/iOS)"
-        A[Voice Input] --> B[Bhashini WebSocket Client]
-        A --> C[YAMNet TFLite Fallback]
-        D[MapLibre Renderer] --> E[PMTiles Cache]
-        F[WatermelonDB] --> G[Local Storage]
+flowchart TB
+    subgraph Client["Client Layer - Android/iOS"]
+        A[Voice Input]
+        B[Bhashini WebSocket]
+        C[YAMNet TFLite]
+        D[MapLibre Renderer]
+        E[PMTiles Cache]
+        F[WatermelonDB]
     end
     
-    subgraph "API Gateway Layer"
-        H[Load Balancer]
-        I[Authentication Service]
+    subgraph Gateway["API Gateway"]
+        G[Load Balancer]
+        H[Auth Service]
     end
     
-    subgraph "Linguistic Processing Layer"
-        B --> J[Bhashini ASR/TTS Service]
-        J --> K[IndicBERT NER Engine]
-        K --> L[Intent Classifier]
+    subgraph Linguistic["Linguistic Processing"]
+        I[Bhashini ASR/TTS]
+        J[IndicBERT NER]
+        K[Intent Classifier]
     end
     
-    subgraph "Intelligence Layer"
-        M[PostGIS Database]
-        N[H3 Indexer]
-        O[AHP Route Calculator]
-        P[EigenTrust Validator]
-        M --> N
-        N --> O
+    subgraph Intelligence["Intelligence Layer"]
+        L[PostGIS DB]
+        M[H3 Indexer]
+        N[AHP Calculator]
+        O[EigenTrust]
     end
     
-    subgraph "Discovery Layer"
-        Q[Beckn Gateway]
-        R[Responder Registry]
-        S[SOS Broadcast Service]
-        Q --> R
-        Q --> S
+    subgraph Discovery["Discovery Layer"]
+        P[Beckn Gateway]
+        Q[Responder Registry]
+        R[SOS Broadcast]
     end
     
-    subgraph "Storage Layer"
-        T[PostgreSQL + PostGIS]
-        U[Cloudflare R2 (PMTiles)]
-        V[Redis Cache]
+    subgraph Storage["Storage Layer"]
+        S[PostgreSQL]
+        T[Cloudflare R2]
+        U[Redis Cache]
     end
     
+    A --> B
+    A --> C
+    B --> I
+    I --> J
+    J --> K
+    K --> L
     L --> M
-    O --> D
-    S --> Q
-    F --> H
-    H --> I
-    I --> M
-    M --> T
-    E --> U
-    
-    style A fill:#e1f5ff
-    style D fill:#e1f5ff
-    style J fill:#fff4e1
-    style K fill:#fff4e1
-    style M fill:#f0e1ff
-    style Q fill:#e1ffe1
+    M --> N
+    N --> D
+    D --> E
+    E --> T
+    F --> G
+    G --> H
+    H --> L
+    L --> S
+    R --> P
+    P --> Q
 ```
 
 ### Layer Descriptions
