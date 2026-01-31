@@ -1,17 +1,30 @@
-# Design Document: MargMitra (The Civic Neural Grid)
+# Design Document: MargMitra (The Civic Neural Grid) - MERN + India Stack Hybrid
 
 ## Overview
 
-MargMitra is a civic safety platform built using the MERN stack (MongoDB, Express.js, React, Node.js). The system follows a three-layer architecture: (1) Voice Interaction Layer for multilingual voice commands, (2) Intelligence Layer for spatial safety analysis and routing, and (3) Response Coordination Layer for emergency response management.
+MargMitra is a civic safety platform that combines the MERN stack (MongoDB, Express.js, React, Node.js) with India Stack protocols to create a scalable, accessible civic technology solution. The hybrid architecture leverages modern web technologies for the application layer while integrating government-backed infrastructure for linguistic inclusion and decentralized coordination.
 
-The design prioritizes real-time operation with offline fallback capabilities. This is achieved through React Progressive Web App (PWA) features, MongoDB for flexible data storage, and Node.js microservices for scalable backend processing.
+**Technology Stack**:
+- **Frontend**: React 18 Progressive Web App (PWA)
+- **Backend**: Node.js 18+ with Express.js 4.x
+- **Application Database**: MongoDB 6.0+ (users, sessions, observations)
+- **Spatial Database**: PostgreSQL 14+ with PostGIS extension (safety hexagons, routes)
+- **Cache**: Redis 7.0+ (API responses, session data)
+- **Real-time**: Socket.IO 4.x (WebSocket connections)
+- **Maps**: Leaflet.js with PMTiles on Cloudflare R2
+- **Voice**: Bhashini API (primary) + Web Speech API (fallback)
+- **NER**: IndicBERT via REST API
+- **Discovery**: Beckn Protocol for responder coordination
+- **Spatial Indexing**: Uber H3 (Resolution 9/10)
+- **Authentication**: JWT with bcrypt + optional Aadhaar
 
 **Key Design Principles**:
-- **Progressive Web App**: Core features work offline via service workers; sync when available
-- **Multilingual Support**: Voice-first interaction using Web Speech API and cloud translation services
-- **Coordinated Safety**: Emergency response coordinated across volunteers, NGOs, private security, and government
-- **Privacy by Design**: Location data anonymized using geohashing; HTTPS encryption for all data transmission
-- **Real-time Updates**: WebSocket connections for live safety updates and emergency broadcasts
+- **MERN for Application**: React UI, Node.js services, MongoDB for flexible data
+- **India Stack for Civic Infrastructure**: Bhashini, Beckn, PostGIS for government integration
+- **Progressive Enhancement**: Core features work without India Stack, enhanced when available
+- **Offline-First**: Service workers + IndexedDB for offline capability
+- **Privacy by Design**: H3 anonymization, HTTPS encryption
+- **Multilingual**: Voice-first in 10+ Indian languages
 
 ## Architecture
 
@@ -19,399 +32,889 @@ The design prioritizes real-time operation with offline fallback capabilities. T
 
 ```mermaid
 flowchart TB
-    subgraph Client["Client Layer - Android/iOS"]
-        A[Voice Input]
-        B[Bhashini WebSocket]
-        C[YAMNet TFLite]
-        D[MapLibre Renderer]
-        E[PMTiles Cache]
-        F[WatermelonDB]
+    subgraph Frontend["React PWA"]
+        A[React Components]
+        B[Redux Toolkit]
+        C[Service Worker]
+        D[IndexedDB]
+        E[Leaflet Maps]
     end
     
-    subgraph Gateway["API Gateway"]
-        G[Load Balancer]
-        H[Auth Service]
+    subgraph Backend["Node.js + Express"]
+        F[Express REST API]
+        G[Socket.IO Server]
+        H[JWT Auth]
+        I[Bhashini Client]
+        J[IndicBERT Client]
+        K[Beckn Client]
+        L[H3 Service]
     end
     
-    subgraph Linguistic["Linguistic Processing"]
-        I[Bhashini ASR/TTS]
-        J[IndicBERT NER]
-        K[Intent Classifier]
+    subgraph Databases["Hybrid DB"]
+        M[MongoDB]
+        N[PostgreSQL PostGIS]
+        O[Redis]
     end
     
-    subgraph Intelligence["Intelligence Layer"]
-        L[PostGIS DB]
-        M[H3 Indexer]
-        N[AHP Calculator]
-        O[EigenTrust]
+    subgraph IndiaStack["India Stack"]
+        P[Bhashini API]
+        Q[Beckn Gateway]
     end
     
-    subgraph Discovery["Discovery Layer"]
-        P[Beckn Gateway]
-        Q[Responder Registry]
-        R[SOS Broadcast]
+    subgraph External["External"]
+        R[Cloudflare R2]
+        S[OSM Data]
     end
     
-    subgraph Storage["Storage Layer"]
-        S[PostgreSQL]
-        T[Cloudflare R2]
-        U[Redis Cache]
-    end
-    
-    A --> B
-    A --> C
-    B --> I
-    I --> J
-    J --> K
-    K --> L
-    L --> M
-    M --> N
-    N --> D
-    D --> E
-    E --> T
+    A --> F
+    B --> C
+    C --> D
+    E --> R
     F --> G
-    G --> H
-    H --> L
-    L --> S
-    R --> P
-    P --> Q
+    F --> H
+    F --> I
+    F --> J
+    F --> K
+    F --> L
+    I --> P
+    K --> Q
+    F --> M
+    F --> N
+    F --> O
+    G --> A
 ```
 
 ### Layer Descriptions
 
-**Client Layer**: Mobile applications (Android/iOS) with offline-first capabilities. Handles voice input, map rendering, and local data persistence.
+**Frontend Layer (React PWA)**: Single-page application with offline capabilities via service workers. Redux Toolkit manages state, IndexedDB caches data locally, Leaflet renders interactive maps with PMTiles.
 
-**API Gateway Layer**: Entry point for all client requests. Handles authentication, rate limiting, and request routing.
+**Backend Layer (Node.js + Express)**: RESTful API server with microservice architecture. Express handles HTTP requests, Socket.IO provides real-time bidirectional communication. Services integrate with India Stack APIs.
 
-**Linguistic Processing Layer**: Converts vernacular voice input to structured intents. Bhashini provides real-time ASR/TTS, IndicBERT extracts entities, and Intent Classifier determines user goals.
+**Database Layer (Hybrid)**: MongoDB stores user accounts, sessions, and crowdsourced observations. PostgreSQL with PostGIS handles spatial queries for safety hexagons and route calculation. Redis caches frequently accessed data.
 
-**Intelligence Layer**: Spatial safety analysis and route optimization. PostGIS stores geographic data, H3 Indexer creates hexagonal safety buckets, AHP Calculator weights safety factors, and EigenTrust validates crowdsourced data.
+**India Stack Layer**: Bhashini provides multilingual voice ASR/TTS. Beckn Protocol enables decentralized responder discovery. Both are accessed via REST/WebSocket APIs from Node.js backend.
 
-**Discovery Layer**: Decentralized emergency response coordination using Beckn Protocol. Broadcasts SOS signals and collects responses from multiple stakeholder types.
-
-**Storage Layer**: Persistent data storage. PostgreSQL with PostGIS extension for spatial data, Cloudflare R2 for serverless PMTiles hosting, Redis for caching frequently accessed data.
+**External Services**: Cloudflare R2 hosts PMTiles for serverless vector map delivery. OpenStreetMap provides base map data.
 
 ## Components and Interfaces
 
-### 1. Voice Interaction Module
+### 1. Frontend Components (React)
 
-**Purpose**: Enable vernacular voice-first interaction for illiterate and low-literacy users.
+**Component Structure**:
 
-**Components**:
-- **BhashiniClient**: WebSocket client maintaining persistent connection to Bhashini API
-- **AudioStreamManager**: Captures microphone input and streams to Bhashini
-- **TTSPlayer**: Plays synthesized speech responses in user's language
-- **FallbackASR**: Local whisper-tiny.tflite model for offline voice recognition
+```
+src/
+├── components/
+│   ├── Map/
+│   │   ├── MapView.tsx          # Main map component with Leaflet
+│   │   ├── SafetyOverlay.tsx    # H3 hexagon safety visualization
+│   │   └── RouteDisplay.tsx     # Safe route rendering
+│   ├── Voice/
+│   │   ├── VoiceInput.tsx       # Voice command interface
+│   │   └── LanguageSelector.tsx # Language preference
+│   ├── SOS/
+│   │   ├── SOSButton.tsx        # Emergency broadcast trigger
+│   │   └── ResponderList.tsx    # Available responders
+│   ├── Safety/
+│   │   ├── ObservationForm.tsx  # Crowdsource safety reports
+│   │   └── SafetyScore.tsx      # Display hexagon safety scores
+│   └── Auth/
+│       ├── Login.tsx
+│       └── Register.tsx
+├── store/
+│   ├── slices/
+│   │   ├── authSlice.ts
+│   │   ├── safetySlice.ts
+│   │   ├── sosSlice.ts
+│   │   └── mapSlice.ts
+│   └── store.ts
+├── services/
+│   ├── api.ts                   # Axios API client
+│   ├── socket.ts                # Socket.IO client
+│   └── storage.ts               # IndexedDB wrapper
+└── utils/
+    ├── h3.ts                    # H3 utilities
+    └── geolocation.ts           # Browser geolocation
+```
 
-**Interfaces**:
+**Key Interfaces**:
 
 ```typescript
-interface VoiceInteractionService {
-  // Initialize voice session with language preference
-  startVoiceSession(languageCode: string): Promise<SessionId>
-  
-  // Stream audio chunks to Bhashini
-  streamAudio(sessionId: SessionId, audioChunk: ArrayBuffer): void
-  
-  // Receive transcribed text from Bhashini
-  onTranscription(callback: (text: string, language: string) => void): void
-  
-  // Synthesize and play text-to-speech
-  speak(text: string, languageCode: string): Promise<void>
-  
-  // Fallback to local ASR when offline
-  processOfflineAudio(audioBuffer: ArrayBuffer): Promise<string>
+// types/safety.ts
+export interface SafetyHexagon {
+  h3Index: string
+  resolution: 9 | 10
+  safetyScore: number
+  factors: {
+    crime: number
+    streetlights: number
+    crowd: number
+    police: number
+  }
+  lastUpdated: Date
+}
+
+export interface Route {
+  coordinates: [number, number][]
+  distance: number
+  estimatedTime: number
+  averageSafetyScore: number
+  minimumSafetyScore: number
+}
+
+export interface SOSBroadcast {
+  id: string
+  location: [number, number]
+  emergencyType: 'MEDICAL' | 'SAFETY_THREAT' | 'ACCIDENT' | 'FIRE' | 'OTHER'
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  status: 'PENDING' | 'RESPONDED' | 'RESOLVED' | 'CANCELLED'
+  createdAt: Date
 }
 ```
 
-**Key Design Decisions**:
-- WebSocket for bi-directional streaming to minimize latency (<200ms target)
-- Fallback to local TFLite model when internet unavailable
-- Audio buffering to handle network jitter
-- Language auto-detection based on device locale and user history
-
-### 2. Named Entity Recognition Module
-
-**Purpose**: Extract locations, intents, and entities from vernacular speech.
-
-**Components**:
-- **IndicBERTProcessor**: Runs IndicBERT model for NER on translated text
-- **EntityResolver**: Maps extracted entities to geographic coordinates
-- **IntentClassifier**: Determines user intent (SOS, navigation, query, report)
-- **ContextManager**: Maintains conversation context for multi-turn interactions
-
-**Interfaces**:
+**Redux Store Setup**:
 
 ```typescript
-interface NERService {
-  // Extract entities from text
-  extractEntities(text: string, language: string): Promise<Entity[]>
-  
-  // Resolve location entity to coordinates
-  resolveLocation(locationEntity: string, context: UserContext): Promise<Coordinates>
-  
-  // Classify user intent
-  classifyIntent(text: string, entities: Entity[]): Intent
+// store/store.ts
+import { configureStore } from '@reduxjs/toolkit'
+import authReducer from './slices/authSlice'
+import safetyReducer from './slices/safetySlice'
+import sosReducer from './slices/sosSlice'
+import mapReducer from './slices/mapSlice'
+
+export const store = configureStore({
+  reducer: {
+    auth: authReducer,
+    safety: safetyReducer,
+    sos: sosReducer,
+    map: mapReducer
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ['map/setMapInstance'],
+        ignoredPaths: ['map.instance']
+      }
+    })
+})
+
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
+```
+
+**Service Worker (PWA)**:
+
+```javascript
+// public/service-worker.js
+const CACHE_NAME = 'margmitra-v1'
+const RUNTIME_CACHE = 'margmitra-runtime'
+
+// Cache static assets on install
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll([
+        '/',
+        '/index.html',
+        '/static/js/main.js',
+        '/static/css/main.css',
+        '/manifest.json',
+        '/offline.html'
+      ])
+    })
+  )
+})
+
+// Network-first strategy for API calls, cache-first for assets
+self.addEventListener('fetch', (event) => {
+  const { request } = event
+  const url = new URL(request.url)
+
+  // API requests: network-first with cache fallback
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const responseClone = response.clone()
+          caches.open(RUNTIME_CACHE).then((cache) => {
+            cache.put(request, responseClone)
+          })
+          return response
+        })
+        .catch(() => caches.match(request))
+    )
+    return
+  }
+
+  // Static assets: cache-first
+  event.respondWith(
+    caches.match(request).then((response) => {
+      return response || fetch(request)
+    })
+  )
+})
+```
+
+
+### 2. Backend API (Node.js + Express)
+
+**Project Structure**:
+
+```
+server/
+├── src/
+│   ├── routes/
+│   │   ├── auth.routes.ts
+│   │   ├── safety.routes.ts
+│   │   ├── sos.routes.ts
+│   │   ├── responder.routes.ts
+│   │   └── voice.routes.ts
+│   ├── controllers/
+│   │   ├── auth.controller.ts
+│   │   ├── safety.controller.ts
+│   │   ├── sos.controller.ts
+│   │   └── voice.controller.ts
+│   ├── services/
+│   │   ├── bhashini.service.ts
+│   │   ├── indicbert.service.ts
+│   │   ├── beckn.service.ts
+│   │   ├── h3.service.ts
+│   │   └── safety.service.ts
+│   ├── models/
+│   │   ├── mongodb/
+│   │   │   ├── User.model.ts
+│   │   │   ├── Observation.model.ts
+│   │   │   └── Session.model.ts
+│   │   └── postgres/
+│   │       ├── SafetyHexagon.model.ts
+│   │       ├── SOSBroadcast.model.ts
+│   │       └── Responder.model.ts
+│   ├── middleware/
+│   │   ├── auth.middleware.ts
+│   │   ├── validation.middleware.ts
+│   │   └── rateLimit.middleware.ts
+│   ├── utils/
+│   │   ├── jwt.util.ts
+│   │   ├── encryption.util.ts
+│   │   └── logger.util.ts
+│   ├── config/
+│   │   ├── mongodb.config.ts
+│   │   ├── postgres.config.ts
+│   │   └── redis.config.ts
+│   └── app.ts
+├── package.json
+└── tsconfig.json
+```
+
+**API Routes**:
+
+```typescript
+// routes/api.routes.ts
+import express from 'express'
+import { authMiddleware } from '../middleware/auth.middleware'
+import { validateRequest } from '../middleware/validation.middleware'
+import { rateLimiter } from '../middleware/rateLimit.middleware'
+
+const router = express.Router()
+
+// Authentication
+router.post('/auth/register', validateRequest, registerUser)
+router.post('/auth/login', validateRequest, loginUser)
+router.post('/auth/refresh', refreshToken)
+router.post('/auth/logout', authMiddleware, logoutUser)
+
+// Safety Data
+router.get('/safety/hexagons', authMiddleware, getSafetyHexagons)
+router.get('/safety/hexagons/:h3Index', authMiddleware, getHexagonDetails)
+router.post('/safety/observations', authMiddleware, validateRequest, submitObservation)
+router.get('/safety/route', authMiddleware, calculateSafeRoute)
+
+// Emergency SOS
+router.post('/sos/broadcast', authMiddleware, rateLimiter, broadcastSOS)
+router.get('/sos/:id', authMiddleware, getSOSDetails)
+router.put('/sos/:id/respond', authMiddleware, respondToSOS)
+router.put('/sos/:id/resolve', authMiddleware, resolveS OS)
+
+// Voice Processing
+router.post('/voice/transcribe', authMiddleware, transcribeAudio)
+router.post('/voice/synthesize', authMiddleware, synthesizeSpeech)
+router.post('/voice/extract-entities', authMiddleware, extractEntities)
+
+// Responders
+router.post('/responders/register', authMiddleware, registerResponder)
+router.get('/responders/nearby', authMiddleware, getNearbyResponders)
+router.put('/responders/:id/availability', authMiddleware, updateAvailability)
+
+export default router
+```
+
+**Express Server Setup**:
+
+```typescript
+// app.ts
+import express from 'express'
+import cors from 'cors'
+import helmet from 'helmet'
+import compression from 'compression'
+import { createServer } from 'http'
+import { Server as SocketIOServer } from 'socket.io'
+import mongoose from 'mongoose'
+import { Pool } from 'pg'
+import Redis from 'ioredis'
+import apiRoutes from './routes/api.routes'
+import { errorHandler } from './middleware/error.middleware'
+import { setupSocketIO } from './socket/socket.handler'
+
+const app = express()
+const httpServer = createServer(app)
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true
+  }
+})
+
+// Middleware
+app.use(helmet())
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }))
+app.use(compression())
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true }))
+
+// Database connections
+mongoose.connect(process.env.MONGODB_URI!)
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.error('MongoDB connection error:', err))
+
+export const pgPool = new Pool({
+  connectionString: process.env.POSTGRES_URI,
+  max: 20
+})
+
+export const redisClient = new Redis(process.env.REDIS_URI!)
+
+// Routes
+app.use('/api', apiRoutes)
+
+// Socket.IO setup
+setupSocketIO(io)
+
+// Error handling
+app.use(errorHandler)
+
+const PORT = process.env.PORT || 5000
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
+```
+
+**Bhashini Integration Service**:
+
+```typescript
+// services/bhashini.service.ts
+import axios from 'axios'
+import WebSocket from 'ws'
+
+export class BhashiniService {
+  private apiKey: string
+  private baseURL: string
+
+  constructor() {
+    this.apiKey = process.env.BHASHINI_API_KEY!
+    this.baseURL = process.env.BHASHINI_BASE_URL!
+  }
+
+  // Transcribe audio using Bhashini ASR
+  async transcribeAudio(
+    audioBuffer: Buffer,
+    sourceLanguage: string
+  ): Promise<{ text: string; translatedText: string; confidence: number }> {
+    try {
+      const response = await axios.post(
+        `${this.baseURL}/asr`,
+        {
+          audio: audioBuffer.toString('base64'),
+          sourceLanguage,
+          targetLanguage: 'en'
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      return {
+        text: response.data.originalText,
+        translatedText: response.data.translatedText,
+        confidence: response.data.confidence
+      }
+    } catch (error) {
+      console.error('Bhashini ASR error:', error)
+      throw new Error('Voice transcription failed')
+    }
+  }
+
+  // Synthesize speech using Bhashini TTS
+  async synthesizeSpeech(
+    text: string,
+    targetLanguage: string
+  ): Promise<Buffer> {
+    try {
+      const response = await axios.post(
+        `${this.baseURL}/tts`,
+        {
+          text,
+          targetLanguage
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          responseType: 'arraybuffer'
+        }
+      )
+
+      return Buffer.from(response.data)
+    } catch (error) {
+      console.error('Bhashini TTS error:', error)
+      throw new Error('Speech synthesis failed')
+    }
+  }
+
+  // Create WebSocket connection for real-time streaming
+  createStreamingConnection(
+    sourceLanguage: string,
+    onTranscription: (text: string) => void
+  ): WebSocket {
+    const ws = new WebSocket(`${this.baseURL}/stream`, {
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`
+      }
+    })
+
+    ws.on('open', () => {
+      ws.send(JSON.stringify({ sourceLanguage, targetLanguage: 'en' }))
+    })
+
+    ws.on('message', (data) => {
+      const result = JSON.parse(data.toString())
+      if (result.type === 'transcription') {
+        onTranscription(result.text)
+      }
+    })
+
+    return ws
+  }
+}
+```
+
+**Beckn Protocol Integration**:
+
+```typescript
+// services/beckn.service.ts
+import axios from 'axios'
+import { v4 as uuidv4 } from 'uuid'
+
+interface BecknSearchIntent {
+  context: {
+    domain: string
+    action: string
+    transaction_id: string
+    message_id: string
+  }
+  message: {
+    intent: {
+      category: { descriptor: { code: string } }
+      fulfillment: {
+        type: string
+        start: {
+          location: { gps: string; h3_index: string }
+          time: { timestamp: string }
+        }
+        tags: Array<{ descriptor: { code: string }; list: any[] }>
+      }
+    }
+  }
 }
 
-type Entity = {
+export class BecknService {
+  private gatewayURL: string
+  private bapId: string
+  private bapURI: string
+
+  constructor() {
+    this.gatewayURL = process.env.BECKN_GATEWAY_URL!
+    this.bapId = process.env.BECKN_BAP_ID!
+    this.bapURI = process.env.BECKN_BAP_URI!
+  }
+
+  // Broadcast SOS as Beckn search intent
+  async broadcastSOS(sosData: {
+    location: [number, number]
+    h3Index: string
+    emergencyType: string
+    severity: string
+  }): Promise<string> {
+    const transactionId = uuidv4()
+    const messageId = uuidv4()
+
+    const searchIntent: BecknSearchIntent = {
+      context: {
+        domain: 'emergency-response',
+        action: 'search',
+        transaction_id: transactionId,
+        message_id: messageId
+      },
+      message: {
+        intent: {
+          category: {
+            descriptor: { code: 'SOS' }
+          },
+          fulfillment: {
+            type: 'EMERGENCY_RESPONSE',
+            start: {
+              location: {
+                gps: `${sosData.location[0]},${sosData.location[1]}`,
+                h3_index: sosData.h3Index
+              },
+              time: {
+                timestamp: new Date().toISOString()
+              }
+            },
+            tags: [
+              {
+                descriptor: { code: 'emergency_type' },
+                list: [{ descriptor: { code: sosData.emergencyType }, value: 'true' }]
+              },
+              {
+                descriptor: { code: 'severity' },
+                list: [{ descriptor: { code: sosData.severity }, value: 'true' }]
+              }
+            ]
+          }
+        }
+      }
+    }
+
+    try {
+      await axios.post(`${this.gatewayURL}/search`, searchIntent, {
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      return transactionId
+    } catch (error) {
+      console.error('Beckn broadcast error:', error)
+      throw new Error('SOS broadcast failed')
+    }
+  }
+
+  // Listen for responder responses (on_search)
+  async getResponderResponses(transactionId: string): Promise<any[]> {
+    try {
+      const response = await axios.get(
+        `${this.bapURI}/on_search?transaction_id=${transactionId}`
+      )
+
+      return response.data.responses || []
+    } catch (error) {
+      console.error('Beckn response retrieval error:', error)
+      return []
+    }
+  }
+
+  // Confirm responder selection
+  async confirmResponder(
+    transactionId: string,
+    responderId: string
+  ): Promise<void> {
+    const messageId = uuidv4()
+
+    const confirmIntent = {
+      context: {
+        domain: 'emergency-response',
+        action: 'confirm',
+        transaction_id: transactionId,
+        message_id: messageId
+      },
+      message: {
+        order: {
+          provider: { id: responderId }
+        }
+      }
+    }
+
+    try {
+      await axios.post(`${this.gatewayURL}/confirm`, confirmIntent)
+    } catch (error) {
+      console.error('Beckn confirm error:', error)
+      throw new Error('Responder confirmation failed')
+    }
+  }
+}
+```
+
+
+### 3. H3 Spatial Indexing Service
+
+**Purpose**: Convert geographic coordinates to H3 hexagonal indices for safety bucketing.
+
+```typescript
+// services/h3.service.ts
+import { cellToBoundary, latLngToCell, cellToLatLng, gridDisk } from 'h3-js'
+
+export class H3Service {
+  // Convert coordinates to H3 index
+  coordinatesToH3(lat: number, lng: number, resolution: 9 | 10): string {
+    return latLngToCell(lat, lng, resolution)
+  }
+
+  // Get hexagon boundary coordinates for map rendering
+  getHexagonBoundary(h3Index: string): [number, number][] {
+    return cellToBoundary(h3Index, true) as [number, number][]
+  }
+
+  // Get center coordinates of hexagon
+  getHexagonCenter(h3Index: string): [number, number] {
+    const [lat, lng] = cellToLatLng(h3Index)
+    return [lat, lng]
+  }
+
+  // Get neighboring hexagons (k-ring)
+  getNeighbors(h3Index: string, k: number = 1): string[] {
+    return gridDisk(h3Index, k)
+  }
+
+  // Determine resolution based on area type
+  getAppropriateResolution(populationDensity: number): 9 | 10 {
+    // High density (>5000 people/km²) uses resolution 10 (66m edge)
+    // Urban areas use resolution 9 (174m edge)
+    return populationDensity > 5000 ? 10 : 9
+  }
+
+  // Batch convert multiple coordinates
+  batchCoordinatesToH3(
+    coordinates: [number, number][],
+    resolution: 9 | 10
+  ): string[] {
+    return coordinates.map(([lat, lng]) => this.coordinatesToH3(lat, lng, resolution))
+  }
+}
+```
+
+### 4. IndicBERT NER Service
+
+**Purpose**: Extract named entities (locations, times, emergency types) from vernacular text.
+
+```typescript
+// services/indicbert.service.ts
+import axios from 'axios'
+
+interface Entity {
   type: 'LOCATION' | 'PERSON' | 'TIME' | 'EMERGENCY_TYPE'
   value: string
   confidence: number
+  startIndex: number
+  endIndex: number
 }
 
-type Intent = 
-  | { type: 'SOS', emergencyType: string }
-  | { type: 'NAVIGATE', destination: Coordinates }
-  | { type: 'QUERY_SAFETY', location: Coordinates }
-  | { type: 'REPORT_INCIDENT', incidentType: string, location: Coordinates }
-```
+export class IndicBERTService {
+  private apiURL: string
+  private apiKey: string
 
-**Key Design Decisions**:
-- IndicBERT chosen for superior performance on Indian languages vs. multilingual BERT
-- Local geocoding database for common landmarks to reduce API calls
-- Confidence thresholds: >0.85 for auto-execution, 0.6-0.85 for confirmation prompt, <0.6 for clarification
-- Context window of 5 previous utterances for disambiguation
-
-### 3. Offline Map Module
-
-**Purpose**: Provide vector map rendering without internet connectivity.
-
-**Components**:
-- **PMTilesCache**: Manages local storage of PMTiles archives
-- **MapLibreRenderer**: Renders vector tiles using MapLibre GL
-- **TileDownloader**: Pre-downloads tiles for user's city and frequent routes
-- **StyleManager**: Applies safety-aware map styling (color-coded hexagons)
-
-**Interfaces**:
-
-```typescript
-interface OfflineMapService {
-  // Download PMTiles for a geographic region
-  downloadRegion(bounds: BoundingBox, priority: 'HIGH' | 'NORMAL' | 'LOW'): Promise<void>
-  
-  // Check if tiles are available offline for a location
-  isAvailableOffline(location: Coordinates): boolean
-  
-  // Render map with safety overlay
-  renderMap(center: Coordinates, zoom: number, safetyLayer: boolean): MapView
-  
-  // Get storage usage and manage cache
-  getCacheStats(): CacheStats
-  evictLowPriorityTiles(bytesToFree: number): Promise<void>
-}
-```
-
-**Key Design Decisions**:
-- PMTiles chosen over MBTiles for serverless hosting on Cloudflare R2 (no database required)
-- Resolution 9 H3 hexagons (174m edge) for urban areas, Resolution 10 (66m) for high-density zones
-- Automatic cache management: prioritize high-risk areas and frequent routes
-- Vector tiles allow dynamic styling without re-downloading data
-
-### 4. Safety Intelligence Module
-
-**Purpose**: Calculate and maintain safety scores for geographic areas.
-
-**Components**:
-- **H3Indexer**: Converts coordinates to H3 hexagon identifiers
-- **SafetyAggregator**: Combines multiple data sources into safety scores
-- **AHPCalculator**: Applies Analytic Hierarchy Process for multi-criteria weighting
-- **CrowdsourceValidator**: Uses EigenTrust to validate user-submitted data
-
-**Interfaces**:
-
-```typescript
-interface SafetyIntelligenceService {
-  // Get safety score for a hexagon
-  getSafetyScore(h3Index: string): Promise<SafetyScore>
-  
-  // Calculate safe route between two points
-  calculateSafeRoute(origin: Coordinates, destination: Coordinates, preferences: RoutePreferences): Promise<Route>
-  
-  // Submit crowdsourced safety observation
-  submitObservation(observation: SafetyObservation, userId: string): Promise<void>
-  
-  // Get user's reputation score
-  getReputationScore(userId: string): Promise<number>
-}
-
-type SafetyScore = {
-  h3Index: string
-  overallScore: number // 0-100
-  factors: {
-    crimeRate: number
-    streetlightDensity: number
-    crowdDensity: number
-    policePresence: number
+  constructor() {
+    this.apiURL = process.env.INDICBERT_API_URL!
+    this.apiKey = process.env.INDICBERT_API_KEY!
   }
-  lastUpdated: Date
-  confidence: number
-}
 
-type RoutePreferences = {
-  safetyWeight: number // 0-1, where 1 = maximum safety priority
-  avoidDarkAreas: boolean
-  preferCrowdedRoutes: boolean
-}
-```
+  // Extract entities from text
+  async extractEntities(text: string, language: string): Promise<Entity[]> {
+    try {
+      const response = await axios.post(
+        `${this.apiURL}/ner`,
+        {
+          text,
+          language
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
 
-**Key Design Decisions**:
-- H3 hexagons provide consistent area-based bucketing (vs. irregular administrative boundaries)
-- AHP ensures mathematically consistent weighting of safety factors
-- EigenTrust prevents Sybil attacks by calculating transitive trust
-- Safety scores updated every 15 minutes during peak hours, hourly during off-peak
+      return response.data.entities.map((entity: any) => ({
+        type: entity.label,
+        value: entity.text,
+        confidence: entity.score,
+        startIndex: entity.start,
+        endIndex: entity.end
+      }))
+    } catch (error) {
+      console.error('IndicBERT NER error:', error)
+      return []
+    }
+  }
 
+  // Classify user intent from text and entities
+  classifyIntent(text: string, entities: Entity[]): {
+    type: 'SOS' | 'NAVIGATE' | 'QUERY_SAFETY' | 'REPORT_INCIDENT'
+    confidence: number
+  } {
+    const lowerText = text.toLowerCase()
 
-### 5. Beckn Protocol Integration Module
+    // SOS keywords
+    if (lowerText.includes('help') || lowerText.includes('emergency') || 
+        lowerText.includes('मदद') || lowerText.includes('உதவி')) {
+      return { type: 'SOS', confidence: 0.95 }
+    }
 
-**Purpose**: Enable decentralized discovery of emergency responders.
+    // Navigation keywords
+    if (lowerText.includes('route') || lowerText.includes('navigate') ||
+        lowerText.includes('रास्ता') || lowerText.includes('வழி')) {
+      return { type: 'NAVIGATE', confidence: 0.90 }
+    }
 
-**Components**:
-- **BecknGatewayClient**: Communicates with Beckn Gateway for SOS broadcasts
-- **ResponderRegistry**: Maintains list of available responders and their capabilities
-- **WorkflowOrchestrator**: Manages Beckn protocol state machine (search → on_search → init → confirm)
-- **ResponseAggregator**: Collects and ranks responder responses
+    // Safety query keywords
+    if (lowerText.includes('safe') || lowerText.includes('safety') ||
+        lowerText.includes('सुरक्षित') || lowerText.includes('பாதுகாப்பு')) {
+      return { type: 'QUERY_SAFETY', confidence: 0.85 }
+    }
 
-**Interfaces**:
+    // Report incident keywords
+    if (lowerText.includes('report') || lowerText.includes('incident') ||
+        lowerText.includes('रिपोर्ट') || lowerText.includes('அறிக்கை')) {
+      return { type: 'REPORT_INCIDENT', confidence: 0.80 }
+    }
 
-```typescript
-interface BecknService {
-  // Broadcast SOS as Beckn search intent
-  broadcastSOS(sos: SOSRequest): Promise<TransactionId>
-  
-  // Receive responder responses
-  onResponderResponse(callback: (response: ResponderOffer) => void): void
-  
-  // Select and confirm responder
-  confirmResponder(transactionId: TransactionId, responderId: string): Promise<ConfirmationResult>
-  
-  // Cancel SOS broadcast
-  cancelSOS(transactionId: TransactionId): Promise<void>
-}
+    // Default to query if uncertain
+    return { type: 'QUERY_SAFETY', confidence: 0.50 }
+  }
 
-type SOSRequest = {
-  location: Coordinates
-  emergencyType: 'MEDICAL' | 'SAFETY_THREAT' | 'ACCIDENT' | 'FIRE' | 'OTHER'
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-  requesterProfile: {
-    age?: number
-    gender?: string
-    medicalConditions?: string[]
+  // Resolve location entity to coordinates using geocoding
+  async resolveLocation(
+    locationEntity: string,
+    userContext: { city?: string; state?: string }
+  ): Promise<[number, number] | null> {
+    // This would integrate with a geocoding service
+    // For now, returning null to indicate unresolved
+    try {
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/search`,
+        {
+          params: {
+            q: `${locationEntity}, ${userContext.city}, ${userContext.state}, India`,
+            format: 'json',
+            limit: 1
+          }
+        }
+      )
+
+      if (response.data.length > 0) {
+        return [parseFloat(response.data[0].lat), parseFloat(response.data[0].lon)]
+      }
+
+      return null
+    } catch (error) {
+      console.error('Geocoding error:', error)
+      return null
+    }
   }
 }
-
-type ResponderOffer = {
-  responderId: string
-  responderType: 'VOLUNTEER' | 'NGO' | 'PRIVATE_SECURITY' | 'GOVERNMENT'
-  estimatedArrivalMinutes: number
-  capabilities: string[]
-  reputationScore: number
-  distance: number
-}
 ```
-
-**Key Design Decisions**:
-- Beckn Protocol enables open, decentralized discovery (no single responder monopoly)
-- Search intent includes severity and emergency type for intelligent routing
-- Responders self-report ETA; system validates against historical accuracy
-- User can select from multiple responders or accept auto-selected best match
-
-### 6. Acoustic Detection Module
-
-**Purpose**: Detect danger sounds in the environment using edge AI.
-
-**Components**:
-- **YAMNetDetector**: Runs YAMNet TFLite model for audio classification
-- **SignatureLibrary**: Database of acoustic signatures for danger sounds
-- **BackgroundMonitor**: Manages background audio processing with battery optimization
-- **AlertTrigger**: Prompts user confirmation before broadcasting SOS
-
-**Interfaces**:
-
-```typescript
-interface AcousticDetectionService {
-  // Start background audio monitoring
-  startMonitoring(sensitivity: 'LOW' | 'MEDIUM' | 'HIGH'): void
-  
-  // Stop background monitoring
-  stopMonitoring(): void
-  
-  // Register callback for danger sound detection
-  onDangerDetected(callback: (soundType: string, confidence: number) => void): void
-  
-  // Get battery impact estimate
-  getBatteryImpact(): BatteryImpactEstimate
-}
-
-type BatteryImpactEstimate = {
-  estimatedBatteryPercentPerHour: number
-  currentPowerConsumption: number // mW
-}
-```
-
-**Key Design Decisions**:
-- YAMNet int8 quantized model for minimal battery impact (<5% per hour)
-- Runs entirely on-device; no audio transmitted to servers
-- Confidence threshold: >0.8 for automatic alert, 0.6-0.8 for user confirmation
-- Acoustic signatures: screaming, glass breaking, gunshots, car crashes, explosions
-- Background monitoring can be disabled by user for privacy/battery concerns
-
-### 7. Data Synchronization Module
-
-**Purpose**: Sync offline changes when connectivity is restored.
-
-**Components**:
-- **WatermelonDBAdapter**: Local-first database with reactive queries
-- **SyncCoordinator**: Manages bidirectional sync with backend
-- **ConflictResolver**: Implements Last-Write-Wins strategy
-- **ChangeLogManager**: Maintains audit trail of all data changes
-
-**Interfaces**:
-
-```typescript
-interface SyncService {
-  // Trigger manual sync
-  syncNow(): Promise<SyncResult>
-  
-  // Configure automatic sync behavior
-  configureSyncPolicy(policy: SyncPolicy): void
-  
-  // Get sync status
-  getSyncStatus(): SyncStatus
-  
-  // Resolve conflicts manually (for critical data)
-  resolveConflict(conflictId: string, resolution: 'LOCAL' | 'REMOTE' | 'MERGE'): Promise<void>
-}
-
-type SyncPolicy = {
-  autoSyncEnabled: boolean
-  syncOnWifiOnly: boolean
-  syncIntervalMinutes: number
-  maxRetries: number
-}
-
-type SyncResult = {
-  success: boolean
-  itemsSynced: number
-  conflictsResolved: number
-  errors: SyncError[]
-}
-```
-
-**Key Design Decisions**:
-- WatermelonDB chosen for reactive queries and optimistic UI updates
-- Last-Write-Wins based on device timestamp (assumes reasonably synchronized clocks)
-- Exponential backoff for failed syncs: 1min, 2min, 4min, 8min, 16min
-- Critical data (SOS broadcasts) bypass sync queue and use direct API calls
-- Change log retained for 30 days for debugging and audit purposes
 
 ## Data Models
 
-### Database Schema (PostgreSQL + PostGIS)
+### MongoDB Schemas (Mongoose)
 
-#### Table: safety_hexagons
+```typescript
+// models/mongodb/User.model.ts
+import mongoose, { Schema, Document } from 'mongoose'
+
+export interface IUser extends Document {
+  email: string
+  passwordHash: string
+  name: string
+  phone: string
+  languagePreference: string
+  role: 'USER' | 'RESPONDER' | 'ADMIN'
+  aadhaarVerified: boolean
+  createdAt: Date
+  lastActive: Date
+}
+
+const UserSchema = new Schema<IUser>({
+  email: { type: String, required: true, unique: true },
+  passwordHash: { type: String, required: true },
+  name: { type: String, required: true },
+  phone: { type: String, required: true },
+  languagePreference: { type: String, default: 'en' },
+  role: { type: String, enum: ['USER', 'RESPONDER', 'ADMIN'], default: 'USER' },
+  aadhaarVerified: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  lastActive: { type: Date, default: Date.now }
+})
+
+export const User = mongoose.model<IUser>('User', UserSchema)
+```
+
+```typescript
+// models/mongodb/Observation.model.ts
+import mongoose, { Schema, Document } from 'mongoose'
+
+export interface IObservation extends Document {
+  userId: mongoose.Types.ObjectId
+  location: {
+    type: 'Point'
+    coordinates: [number, number]
+  }
+  h3Index: string
+  observationType: 'INCIDENT' | 'SAFETY_CONCERN' | 'SAFE_AREA' | 'INFRASTRUCTURE'
+  safetyRating: number
+  description: string
+  photoUrls: string[]
+  verificationStatus: 'PENDING' | 'VERIFIED' | 'REJECTED'
+  contributionWeight: number
+  createdAt: Date
+}
+
+const ObservationSchema = new Schema<IObservation>({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  location: {
+    type: { type: String, enum: ['Point'], required: true },
+    coordinates: { type: [Number], required: true }
+  },
+  h3Index: { type: String, required: true, index: true },
+  observationType: {
+    type: String,
+    enum: ['INCIDENT', 'SAFETY_CONCERN', 'SAFE_AREA', 'INFRASTRUCTURE'],
+    required: true
+  },
+  safetyRating: { type: Number, min: 1, max: 5 },
+  description: { type: String, required: true },
+  photoUrls: [{ type: String }],
+  verificationStatus: {
+    type: String,
+    enum: ['PENDING', 'VERIFIED', 'REJECTED'],
+    default: 'PENDING'
+  },
+  contributionWeight: { type: Number, default: 1.0 },
+  createdAt: { type: Date, default: Date.now }
+})
+
+// Geospatial index for location queries
+ObservationSchema.index({ location: '2dsphere' })
+
+export const Observation = mongoose.model<IObservation>('Observation', ObservationSchema)
+```
+
+### PostgreSQL Tables (PostGIS)
 
 ```sql
+-- Safety hexagons with spatial data
 CREATE TABLE safety_hexagons (
   h3_index VARCHAR(15) PRIMARY KEY,
   resolution SMALLINT NOT NULL CHECK (resolution IN (9, 10)),
@@ -431,7 +934,6 @@ CREATE TABLE safety_hexagons (
   last_updated TIMESTAMP NOT NULL DEFAULT NOW(),
   update_count INTEGER NOT NULL DEFAULT 0,
   
-  -- Spatial index
   CONSTRAINT valid_scores CHECK (
     crime_score BETWEEN 0 AND 100 AND
     streetlight_score BETWEEN 0 AND 100 AND
@@ -443,14 +945,92 @@ CREATE TABLE safety_hexagons (
 
 CREATE INDEX idx_safety_hexagons_geom ON safety_hexagons USING GIST(geometry);
 CREATE INDEX idx_safety_hexagons_score ON safety_hexagons(overall_safety_score);
-CREATE INDEX idx_safety_hexagons_updated ON safety_hexagons(last_updated);
 ```
 
-#### Table: reputation_scores
+```sql
+-- SOS broadcasts
+CREATE TABLE sos_broadcasts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id VARCHAR(24) NOT NULL, -- MongoDB ObjectId
+  
+  -- Location
+  location GEOMETRY(POINT, 4326) NOT NULL,
+  h3_index VARCHAR(15) NOT NULL,
+  
+  -- Emergency details
+  emergency_type VARCHAR(50) NOT NULL,
+  severity VARCHAR(20) NOT NULL,
+  description TEXT,
+  
+  -- Beckn protocol tracking
+  beckn_transaction_id VARCHAR(100) UNIQUE,
+  beckn_state VARCHAR(20) NOT NULL DEFAULT 'search',
+  
+  -- Response tracking
+  responder_id UUID,
+  response_time_seconds INTEGER,
+  resolution_status VARCHAR(20) DEFAULT 'PENDING',
+  
+  -- Timestamps
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  responded_at TIMESTAMP,
+  resolved_at TIMESTAMP,
+  
+  CONSTRAINT valid_beckn_state CHECK (
+    beckn_state IN ('search', 'on_search', 'init', 'confirm', 'complete', 'cancelled')
+  ),
+  CONSTRAINT valid_severity CHECK (
+    severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')
+  )
+);
+
+CREATE INDEX idx_sos_location ON sos_broadcasts USING GIST(location);
+CREATE INDEX idx_sos_h3 ON sos_broadcasts(h3_index);
+CREATE INDEX idx_sos_created ON sos_broadcasts(created_at);
+```
 
 ```sql
+-- Responders
+CREATE TABLE responders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id VARCHAR(24) NOT NULL UNIQUE, -- MongoDB ObjectId
+  
+  -- Responder details
+  responder_type VARCHAR(30) NOT NULL,
+  organization_name VARCHAR(200),
+  verified BOOLEAN NOT NULL DEFAULT FALSE,
+  
+  -- Capabilities
+  capabilities JSONB NOT NULL DEFAULT '[]'::jsonb,
+  service_radius_km NUMERIC(6,2) NOT NULL DEFAULT 5.0,
+  
+  -- Location
+  base_location GEOMETRY(POINT, 4326),
+  coverage_area GEOMETRY(POLYGON, 4326),
+  
+  -- Performance metrics
+  average_response_time_minutes NUMERIC(6,2),
+  total_responses INTEGER NOT NULL DEFAULT 0,
+  successful_responses INTEGER NOT NULL DEFAULT 0,
+  reputation_score NUMERIC(5,4) NOT NULL DEFAULT 0.5000,
+  
+  -- Metadata
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  last_active TIMESTAMP,
+  
+  CONSTRAINT valid_responder_type CHECK (
+    responder_type IN ('VOLUNTEER', 'NGO', 'PRIVATE_SECURITY', 'GOVERNMENT')
+  )
+);
+
+CREATE INDEX idx_responders_location ON responders USING GIST(base_location);
+CREATE INDEX idx_responders_coverage ON responders USING GIST(coverage_area);
+```
+
+```sql
+-- Reputation scores
 CREATE TABLE reputation_scores (
-  user_id UUID PRIMARY KEY REFERENCES users(id),
+  user_id VARCHAR(24) PRIMARY KEY, -- MongoDB ObjectId
   eigentrust_value NUMERIC(5,4) NOT NULL DEFAULT 0.5000,
   
   -- Historical accuracy tracking
@@ -475,1185 +1055,405 @@ CREATE TABLE reputation_scores (
 );
 
 CREATE INDEX idx_reputation_eigentrust ON reputation_scores(eigentrust_value);
-CREATE INDEX idx_reputation_updated ON reputation_scores(last_calculated);
 ```
 
-#### Table: sos_broadcasts
-
-```sql
-CREATE TABLE sos_broadcasts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  
-  -- Location
-  location GEOMETRY(POINT, 4326) NOT NULL,
-  h3_index VARCHAR(15) NOT NULL,
-  
-  -- Emergency details
-  emergency_type VARCHAR(50) NOT NULL,
-  severity VARCHAR(20) NOT NULL,
-  description TEXT,
-  
-  -- Beckn protocol tracking
-  beckn_transaction_id VARCHAR(100) UNIQUE,
-  beckn_state VARCHAR(20) NOT NULL DEFAULT 'search',
-  
-  -- Response tracking
-  responder_id UUID REFERENCES responders(id),
-  response_time_seconds INTEGER,
-  resolution_status VARCHAR(20) DEFAULT 'PENDING',
-  
-  -- Timestamps
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  responded_at TIMESTAMP,
-  resolved_at TIMESTAMP,
-  
-  CONSTRAINT valid_beckn_state CHECK (
-    beckn_state IN ('search', 'on_search', 'init', 'confirm', 'complete', 'cancelled')
-  ),
-  CONSTRAINT valid_severity CHECK (
-    severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')
-  )
-);
-
-CREATE INDEX idx_sos_location ON sos_broadcasts USING GIST(location);
-CREATE INDEX idx_sos_h3 ON sos_broadcasts(h3_index);
-CREATE INDEX idx_sos_created ON sos_broadcasts(created_at);
-CREATE INDEX idx_sos_status ON sos_broadcasts(resolution_status);
-```
-
-#### Table: responders
-
-```sql
-CREATE TABLE responders (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  
-  -- Responder details
-  responder_type VARCHAR(30) NOT NULL,
-  organization_name VARCHAR(200),
-  verified BOOLEAN NOT NULL DEFAULT FALSE,
-  
-  -- Capabilities
-  capabilities JSONB NOT NULL DEFAULT '[]'::jsonb,
-  service_radius_km NUMERIC(6,2) NOT NULL DEFAULT 5.0,
-  
-  -- Location (for proximity matching)
-  base_location GEOMETRY(POINT, 4326),
-  coverage_area GEOMETRY(POLYGON, 4326),
-  
-  -- Performance metrics
-  average_response_time_minutes NUMERIC(6,2),
-  total_responses INTEGER NOT NULL DEFAULT 0,
-  successful_responses INTEGER NOT NULL DEFAULT 0,
-  reputation_score NUMERIC(5,4) NOT NULL DEFAULT 0.5000,
-  
-  -- Metadata
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  last_active TIMESTAMP,
-  
-  CONSTRAINT valid_responder_type CHECK (
-    responder_type IN ('VOLUNTEER', 'NGO', 'PRIVATE_SECURITY', 'GOVERNMENT')
-  )
-);
-
-CREATE INDEX idx_responders_location ON responders USING GIST(base_location);
-CREATE INDEX idx_responders_coverage ON responders USING GIST(coverage_area);
-CREATE INDEX idx_responders_type ON responders(responder_type);
-CREATE INDEX idx_responders_reputation ON responders(reputation_score);
-```
-
-
-#### Table: crowdsourced_observations
-
-```sql
-CREATE TABLE crowdsourced_observations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  
-  -- Location
-  location GEOMETRY(POINT, 4326) NOT NULL,
-  h3_index VARCHAR(15) NOT NULL,
-  
-  -- Observation details
-  observation_type VARCHAR(50) NOT NULL,
-  safety_rating SMALLINT CHECK (safety_rating BETWEEN 1 AND 5),
-  description TEXT,
-  photo_urls JSONB DEFAULT '[]'::jsonb,
-  
-  -- Validation
-  verification_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-  verified_by_user_id UUID REFERENCES users(id),
-  verification_notes TEXT,
-  
-  -- Weighting (based on contributor reputation)
-  contribution_weight NUMERIC(5,4) NOT NULL DEFAULT 1.0000,
-  
-  -- Timestamps
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  verified_at TIMESTAMP,
-  
-  CONSTRAINT valid_observation_type CHECK (
-    observation_type IN ('INCIDENT', 'SAFETY_CONCERN', 'SAFE_AREA', 'INFRASTRUCTURE', 'OTHER')
-  ),
-  CONSTRAINT valid_verification_status CHECK (
-    verification_status IN ('PENDING', 'VERIFIED', 'REJECTED', 'DISPUTED')
-  )
-);
-
-CREATE INDEX idx_observations_location ON crowdsourced_observations USING GIST(location);
-CREATE INDEX idx_observations_h3 ON crowdsourced_observations(h3_index);
-CREATE INDEX idx_observations_created ON crowdsourced_observations(created_at);
-CREATE INDEX idx_observations_status ON crowdsourced_observations(verification_status);
-```
-
-### Local Database Schema (WatermelonDB)
-
-```typescript
-// User preferences and session data
-@model('user_preferences')
-class UserPreferences extends Model {
-  @field('language_code') languageCode: string
-  @field('safety_weight') safetyWeight: number
-  @field('avoid_dark_areas') avoidDarkAreas: boolean
-  @field('acoustic_monitoring_enabled') acousticMonitoringEnabled: boolean
-  @field('sync_on_wifi_only') syncOnWifiOnly: boolean
-}
-
-// Cached safety hexagons
-@model('cached_safety_hexagons')
-class CachedSafetyHexagon extends Model {
-  @field('h3_index') h3Index: string
-  @field('overall_safety_score') overallSafetyScore: number
-  @field('crime_score') crimeScore: number
-  @field('streetlight_score') streetlightScore: number
-  @field('crowd_score') crowdScore: number
-  @field('last_synced') lastSynced: number // Unix timestamp
-  @field('is_dirty') isDirty: boolean // Has local changes not synced
-}
-
-// Offline SOS queue
-@model('pending_sos')
-class PendingSOS extends Model {
-  @field('location_lat') locationLat: number
-  @field('location_lng') locationLng: number
-  @field('emergency_type') emergencyType: string
-  @field('severity') severity: string
-  @field('description') description: string
-  @field('created_at') createdAt: number
-  @field('sync_attempts') syncAttempts: number
-}
-
-// Downloaded map regions
-@model('downloaded_regions')
-class DownloadedRegion extends Model {
-  @field('region_name') regionName: string
-  @field('bounds_json') boundsJson: string // Serialized BoundingBox
-  @field('download_date') downloadDate: number
-  @field('size_bytes') sizeBytes: number
-  @field('priority') priority: string
-}
-```
 
 ## Algorithm Specifications
 
 ### 1. Analytic Hierarchy Process (AHP) for Route Safety Weighting
 
-**Purpose**: Mathematically consistent multi-criteria decision making for route safety scoring.
+**Purpose**: Calculate mathematically consistent weights for safety factors.
 
-**Algorithm**:
+```typescript
+// services/ahp.service.ts
+export class AHPService {
+  private randomIndex = {
+    3: 0.58,
+    4: 0.90,
+    5: 1.12,
+    6: 1.24,
+    7: 1.32
+  }
 
+  // Calculate AHP weights from pairwise comparison matrix
+  calculateWeights(pairwiseMatrix: number[][]): {
+    weights: number[]
+    consistencyRatio: number
+  } {
+    const n = pairwiseMatrix.length
+
+    // Step 1: Normalize matrix
+    const normalizedMatrix = this.normalizeMatrix(pairwiseMatrix)
+
+    // Step 2: Calculate priority vector (weights)
+    const weights = normalizedMatrix.map(row =>
+      row.reduce((sum, val) => sum + val, 0) / n
+    )
+
+    // Step 3: Calculate consistency
+    const weightedSum = this.multiplyMatrixVector(pairwiseMatrix, weights)
+    const lambdaMax = weightedSum.reduce((sum, val, i) => sum + val / weights[i], 0) / n
+    const consistencyIndex = (lambdaMax - n) / (n - 1)
+    const consistencyRatio = consistencyIndex / this.randomIndex[n as keyof typeof this.randomIndex]
+
+    // Step 4: Validate consistency
+    if (consistencyRatio > 0.1) {
+      throw new Error(`Inconsistent pairwise comparisons (CR=${consistencyRatio.toFixed(3)})`)
+    }
+
+    return { weights, consistencyRatio }
+  }
+
+  private normalizeMatrix(matrix: number[][]): number[][] {
+    const n = matrix.length
+    const columnSums = Array(n).fill(0)
+
+    // Calculate column sums
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        columnSums[j] += matrix[i][j]
+      }
+    }
+
+    // Normalize
+    return matrix.map(row =>
+      row.map((val, j) => val / columnSums[j])
+    )
+  }
+
+  private multiplyMatrixVector(matrix: number[][], vector: number[]): number[] {
+    return matrix.map(row =>
+      row.reduce((sum, val, i) => sum + val * vector[i], 0)
+    )
+  }
+
+  // Get default weights if AHP fails
+  getDefaultWeights(): number[] {
+    return [0.4, 0.3, 0.2, 0.1] // Crime, Streetlights, Crowd, Police
+  }
+}
 ```
-FUNCTION calculateAHPWeights(pairwiseMatrix: Matrix): Weights
-  INPUT: 
-    pairwiseMatrix: n×n matrix where element (i,j) represents 
-                    relative importance of criterion i vs criterion j
-                    Scale: 1/9 (much less important) to 9 (much more important)
-  
-  OUTPUT:
-    weights: Vector of normalized weights for each criterion
-    consistencyRatio: Measure of logical consistency (should be < 0.1)
-  
-  STEPS:
-    1. Normalize pairwise matrix:
-       FOR each column j:
-         columnSum = SUM(pairwiseMatrix[i][j] for all i)
-         FOR each row i:
-           normalizedMatrix[i][j] = pairwiseMatrix[i][j] / columnSum
-    
-    2. Calculate priority vector (average of row means):
-       FOR each row i:
-         weights[i] = MEAN(normalizedMatrix[i][j] for all j)
-    
-    3. Calculate consistency:
-       weightedSum = pairwiseMatrix × weights
-       lambdaMax = MEAN(weightedSum[i] / weights[i] for all i)
-       consistencyIndex = (lambdaMax - n) / (n - 1)
-       
-       // Random Index values for different matrix sizes
-       randomIndex = LOOKUP_TABLE[n]  // e.g., RI[4] = 0.90
-       
-       consistencyRatio = consistencyIndex / randomIndex
-    
-    4. Validate consistency:
-       IF consistencyRatio > 0.1:
-         THROW "Inconsistent pairwise comparisons"
-       
-    5. RETURN (weights, consistencyRatio)
-
-END FUNCTION
-
-// Example pairwise matrix for safety factors:
-// Criteria: [Crime, Streetlights, Crowd, Police]
-//
-//              Crime  Lights  Crowd  Police
-// Crime    [    1      3       5      2    ]
-// Lights   [   1/3     1       3      1    ]
-// Crowd    [   1/5    1/3      1     1/2   ]
-// Police   [   1/2     1       2      1    ]
-//
-// This matrix encodes: Crime is 3× more important than Streetlights,
-//                      Crime is 5× more important than Crowd density, etc.
-```
-
-**Key Parameters**:
-- Default weights if AHP fails: Crime=0.4, Streetlights=0.3, Crowd=0.2, Police=0.1
-- Consistency ratio threshold: 0.1 (standard AHP practice)
-- Random Index lookup table: {3: 0.58, 4: 0.90, 5: 1.12, 6: 1.24, 7: 1.32}
 
 ### 2. EigenTrust Algorithm for Reputation Scoring
 
-**Purpose**: Calculate transitive trust scores to prevent Sybil attacks in crowdsourced data.
+**Purpose**: Calculate transitive trust scores to prevent Sybil attacks.
 
-**Algorithm**:
+```typescript
+// services/eigentrust.service.ts
+export class EigenTrustService {
+  private readonly ALPHA = 0.15 // Pre-trust weight
+  private readonly MAX_ITERATIONS = 50
+  private readonly CONVERGENCE_THRESHOLD = 0.001
 
+  // Calculate EigenTrust scores
+  calculateTrust(
+    trustMatrix: number[][],
+    preTrustVector: number[]
+  ): number[] {
+    const n = trustMatrix.length
+    let trustVector = this.normalize(preTrustVector)
+    let iteration = 0
+
+    while (iteration < this.MAX_ITERATIONS) {
+      // Transitive trust propagation: t_new = (1-α) * C^T * t_old + α * p
+      const transitiveTrust = this.multiplyMatrixVector(
+        this.transpose(trustMatrix),
+        trustVector
+      )
+
+      const newTrustVector = transitiveTrust.map((val, i) =>
+        (1 - this.ALPHA) * val + this.ALPHA * preTrustVector[i]
+      )
+
+      // Check convergence
+      const delta = this.l1Norm(this.subtract(newTrustVector, trustVector))
+      if (delta < this.CONVERGENCE_THRESHOLD) {
+        return newTrustVector
+      }
+
+      trustVector = newTrustVector
+      iteration++
+    }
+
+    return trustVector
+  }
+
+  // Build trust matrix from user interactions
+  buildTrustMatrix(
+    userIds: string[],
+    verifications: Array<{
+      verifierId: string
+      contributorId: string
+      outcome: 'ACCURATE' | 'INACCURATE'
+    }>
+  ): number[][] {
+    const n = userIds.length
+    const userIndexMap = new Map(userIds.map((id, i) => [id, i]))
+    const trustMatrix = Array(n).fill(0).map(() => Array(n).fill(0))
+
+    // Build raw trust scores
+    for (const verification of verifications) {
+      const verifierIdx = userIndexMap.get(verification.verifierId)
+      const contributorIdx = userIndexMap.get(verification.contributorId)
+
+      if (verifierIdx !== undefined && contributorIdx !== undefined) {
+        if (verification.outcome === 'ACCURATE') {
+          trustMatrix[verifierIdx][contributorIdx] += 1.0
+        } else {
+          trustMatrix[verifierIdx][contributorIdx] -= 0.5
+        }
+      }
+    }
+
+    // Normalize rows to sum to 1
+    for (let i = 0; i < n; i++) {
+      const rowSum = trustMatrix[i].reduce((sum, val) => sum + Math.max(0, val), 0)
+      if (rowSum > 0) {
+        for (let j = 0; j < n; j++) {
+          trustMatrix[i][j] = Math.max(0, trustMatrix[i][j]) / rowSum
+        }
+      } else {
+        // No trust relationships; distribute uniformly
+        for (let j = 0; j < n; j++) {
+          trustMatrix[i][j] = 1.0 / n
+        }
+      }
+    }
+
+    return trustMatrix
+  }
+
+  private transpose(matrix: number[][]): number[][] {
+    return matrix[0].map((_, i) => matrix.map(row => row[i]))
+  }
+
+  private multiplyMatrixVector(matrix: number[][], vector: number[]): number[] {
+    return matrix.map(row =>
+      row.reduce((sum, val, i) => sum + val * vector[i], 0)
+    )
+  }
+
+  private subtract(a: number[], b: number[]): number[] {
+    return a.map((val, i) => val - b[i])
+  }
+
+  private l1Norm(vector: number[]): number {
+    return vector.reduce((sum, val) => sum + Math.abs(val), 0)
+  }
+
+  private normalize(vector: number[]): number[] {
+    const sum = vector.reduce((s, v) => s + v, 0)
+    return vector.map(v => v / sum)
+  }
+}
 ```
-FUNCTION calculateEigenTrust(trustMatrix: Matrix, preTrustVector: Vector): ReputationScores
-  INPUT:
-    trustMatrix: n×n matrix where element (i,j) represents 
-                 direct trust from peer i to peer j
-                 Normalized so each row sums to 1
-    preTrustVector: Initial trust values (e.g., from verification)
-  
-  OUTPUT:
-    trustVector: Final reputation scores for all users
-  
-  CONSTANTS:
-    ALPHA = 0.15  // Weight for pre-trust (similar to PageRank damping)
-    MAX_ITERATIONS = 50
-    CONVERGENCE_THRESHOLD = 0.001
-  
-  STEPS:
-    1. Initialize trust vector:
-       t_0 = preTrustVector (normalized to sum to 1)
-    
-    2. Iterate until convergence:
-       FOR iteration = 1 to MAX_ITERATIONS:
-         // Transitive trust propagation
-         t_new = (1 - ALPHA) × (trustMatrix^T × t_old) + ALPHA × preTrustVector
-         
-         // Check convergence
-         delta = ||t_new - t_old||_1  // L1 norm
-         IF delta < CONVERGENCE_THRESHOLD:
-           BREAK
-         
-         t_old = t_new
-    
-    3. RETURN t_new
-
-END FUNCTION
-
-// Building the trust matrix from user interactions:
-FUNCTION buildTrustMatrix(users: List[User], observations: List[Observation]): Matrix
-  n = LENGTH(users)
-  trustMatrix = ZEROS(n, n)
-  
-  FOR each observation in observations:
-    contributor = observation.userId
-    
-    // Find users who verified this observation
-    FOR each verification in observation.verifications:
-      verifier = verification.userId
-      
-      IF verification.outcome == ACCURATE:
-        trustMatrix[verifier][contributor] += 1.0
-      ELSE IF verification.outcome == INACCURATE:
-        trustMatrix[verifier][contributor] -= 0.5
-  
-  // Normalize rows to sum to 1
-  FOR each row i:
-    rowSum = SUM(MAX(0, trustMatrix[i][j]) for all j)
-    IF rowSum > 0:
-      FOR each column j:
-        trustMatrix[i][j] = MAX(0, trustMatrix[i][j]) / rowSum
-    ELSE:
-      // No trust relationships; distribute uniformly
-      FOR each column j:
-        trustMatrix[i][j] = 1.0 / n
-  
-  RETURN trustMatrix
-
-END FUNCTION
-```
-
-**Key Parameters**:
-- Alpha (pre-trust weight): 0.15
-- Convergence threshold: 0.001
-- Maximum iterations: 50
-- Initial pre-trust: 0.5 for new users, adjusted based on verification history
 
 ### 3. Safe Route Calculation with A* and Safety Weighting
 
-**Purpose**: Find routes that optimize for safety rather than just distance or time.
-
-**Algorithm**:
-
-```
-FUNCTION calculateSafeRoute(origin: Coordinates, destination: Coordinates, 
-                            safetyWeights: Weights, userPreferences: Preferences): Route
-  INPUT:
-    origin, destination: Geographic coordinates
-    safetyWeights: AHP-calculated weights for safety factors
-    userPreferences: User's safety-vs-speed tradeoff (0-1 scale)
-  
-  OUTPUT:
-    route: Sequence of coordinates with safety score
-  
-  STEPS:
-    1. Build graph from road network:
-       graph = loadRoadNetwork(boundingBox(origin, destination))
-       
-    2. Annotate edges with safety scores:
-       FOR each edge in graph:
-         hexagons = getIntersectingHexagons(edge.geometry)
-         edge.safetyScore = MEAN(hexagon.overallSafetyScore for hexagon in hexagons)
-         edge.distance = calculateDistance(edge.start, edge.end)
-         edge.estimatedTime = edge.distance / averageSpeed
-    
-    3. Define cost function:
-       FUNCTION edgeCost(edge):
-         safetyCost = (100 - edge.safetyScore) / 100  // Invert: lower score = higher cost
-         timeCost = edge.estimatedTime / 60  // Normalize to minutes
-         
-         // Blend based on user preference
-         alpha = userPreferences.safetyWeight  // 0 = fast, 1 = safe
-         totalCost = alpha × safetyCost + (1 - alpha) × timeCost
-         
-         RETURN totalCost
-    
-    4. Run A* pathfinding:
-       FUNCTION heuristic(node, destination):
-         straightLineDistance = haversineDistance(node, destination)
-         // Optimistic estimate: assume perfect safety and average speed
-         RETURN (1 - userPreferences.safetyWeight) × (straightLineDistance / averageSpeed)
-       
-       route = aStar(graph, origin, destination, edgeCost, heuristic)
-    
-    5. Calculate route metrics:
-       route.totalDistance = SUM(edge.distance for edge in route)
-       route.estimatedTime = SUM(edge.estimatedTime for edge in route)
-       route.averageSafetyScore = MEAN(edge.safetyScore for edge in route)
-       route.minimumSafetyScore = MIN(edge.safetyScore for edge in route)
-    
-    6. RETURN route
-
-END FUNCTION
-```
-
-**Key Parameters**:
-- Default safety weight: 0.7 (prioritize safety over speed)
-- Average walking speed: 5 km/h
-- Average driving speed: 30 km/h (urban)
-- Safety score threshold for warnings: <40 (out of 100)
-
-
-## API Contracts
-
-### Beckn Protocol SOS Search Intent
-
-```json
-{
-  "context": {
-    "domain": "emergency-response",
-    "country": "IND",
-    "city": "std:080",
-    "action": "search",
-    "core_version": "1.0.0",
-    "bap_id": "margmitra.gov.in",
-    "bap_uri": "https://api.margmitra.gov.in/beckn",
-    "transaction_id": "a9aaecca-10b7-4d19-b640-b047a7c62196",
-    "message_id": "bb579fb8-cb82-4824-be12-fcbc405b6608",
-    "timestamp": "2024-01-15T09:30:00.000Z"
-  },
-  "message": {
-    "intent": {
-      "category": {
-        "descriptor": {
-          "code": "SOS"
-        }
-      },
-      "fulfillment": {
-        "type": "EMERGENCY_RESPONSE",
-        "start": {
-          "location": {
-            "gps": "12.9716,77.5946",
-            "h3_index": "892830826ffffff"
-          },
-          "time": {
-            "timestamp": "2024-01-15T09:30:00.000Z"
-          }
-        },
-        "customer": {
-          "person": {
-            "age": "28",
-            "gender": "F"
-          }
-        },
-        "tags": [
-          {
-            "descriptor": {
-              "code": "emergency_type"
-            },
-            "list": [
-              {
-                "descriptor": {
-                  "code": "SAFETY_THREAT"
-                },
-                "value": "true"
-              }
-            ]
-          },
-          {
-            "descriptor": {
-              "code": "severity"
-            },
-            "list": [
-              {
-                "descriptor": {
-                  "code": "HIGH"
-                },
-                "value": "true"
-              }
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
-```
-
-### Bhashini WebSocket Message Format
-
-```json
-{
-  "type": "audio_chunk",
-  "sessionId": "sess_abc123",
-  "languageCode": "hi",
-  "audioData": "base64_encoded_audio_chunk",
-  "sequenceNumber": 42,
-  "isFinal": false
-}
-
-// Response from Bhashini
-{
-  "type": "transcription",
-  "sessionId": "sess_abc123",
-  "text": "मुझे सुरक्षित रास्ता चाहिए",
-  "translatedText": "I need a safe route",
-  "confidence": 0.92,
-  "isFinal": true
-}
-```
-
-### Safety Hexagon API Response
-
-```json
-{
-  "h3Index": "892830826ffffff",
-  "resolution": 9,
-  "safetyScore": {
-    "overall": 67.5,
-    "factors": {
-      "crime": 72.0,
-      "streetlights": 85.0,
-      "crowd": 55.0,
-      "policePresence": 58.0
-    },
-    "confidence": 0.87,
-    "lastUpdated": "2024-01-15T09:00:00.000Z"
-  },
-  "geometry": {
-    "type": "Polygon",
-    "coordinates": [[[77.594, 12.971], [77.595, 12.971], ...]]
-  },
-  "metadata": {
-    "updateCount": 1247,
-    "contributorCount": 89
-  }
-}
-```
-
-## Edge Implementation Details
-
-### Running YAMNet TFLite for Acoustic Detection
-
-**Model Specifications**:
-- Model: YAMNet (Yet Another Mobile Network)
-- Format: TensorFlow Lite int8 quantized
-- Size: ~1.2 MB
-- Input: 15600 samples (0.975 seconds) at 16kHz mono audio
-- Output: 521 audio event classes with confidence scores
-
-**Android Implementation**:
-
-```kotlin
-class AcousticDetector(context: Context) {
-    private val interpreter: Interpreter
-    private val dangerClasses = setOf(
-        "Screaming", "Glass_break", "Gunshot", "Explosion",
-        "Car_crash", "Siren", "Alarm"
-    )
-    
-    init {
-        val model = loadModelFile(context, "yamnet_int8.tflite")
-        val options = Interpreter.Options().apply {
-            setNumThreads(2)
-            setUseNNAPI(true) // Use Android Neural Networks API if available
-        }
-        interpreter = Interpreter(model, options)
-    }
-    
-    fun detectDanger(audioBuffer: ShortArray): DetectionResult? {
-        // Preprocess audio: convert to float, normalize
-        val inputBuffer = preprocessAudio(audioBuffer)
-        
-        // Run inference
-        val outputScores = Array(1) { FloatArray(521) }
-        interpreter.run(inputBuffer, outputScores)
-        
-        // Check for danger sounds
-        val scores = outputScores[0]
-        for ((index, className) in classNames.withIndex()) {
-            if (className in dangerClasses && scores[index] > DANGER_THRESHOLD) {
-                return DetectionResult(
-                    soundType = className,
-                    confidence = scores[index],
-                    timestamp = System.currentTimeMillis()
-                )
-            }
-        }
-        
-        return null
-    }
-    
-    companion object {
-        const val DANGER_THRESHOLD = 0.6f
-    }
-}
-```
-
-**Battery Optimization**:
-- Use Android's JobScheduler for background processing
-- Reduce sampling rate to 8kHz when battery < 20%
-- Pause detection when device is charging and stationary
-- Use wake locks sparingly (only during active detection)
-
-### Whisper-Tiny TFLite as Offline ASR Fallback
-
-**Model Specifications**:
-- Model: Whisper-Tiny (OpenAI)
-- Format: TensorFlow Lite float16 quantized
-- Size: ~39 MB
-- Languages: Multilingual (supports Hindi, Tamil, etc.)
-- Accuracy: ~85% WER on Indian English, ~78% on Hindi
-
-**Fallback Logic**:
+**Purpose**: Find routes optimized for safety rather than just speed.
 
 ```typescript
-class VoiceProcessor {
-  async processVoice(audioBuffer: ArrayBuffer): Promise<string> {
-    // Try Bhashini first if online
-    if (this.isOnline() && this.bhashiniConnected) {
-      try {
-        return await this.bhashiniClient.transcribe(audioBuffer)
-      } catch (error) {
-        console.warn('Bhashini failed, falling back to local ASR', error)
+// services/routing.service.ts
+import { pgPool } from '../app'
+import { H3Service } from './h3.service'
+
+export class RoutingService {
+  private h3Service: H3Service
+
+  constructor() {
+    this.h3Service = new H3Service()
+  }
+
+  // Calculate safe route using pgRouting with safety weights
+  async calculateSafeRoute(
+    origin: [number, number],
+    destination: [number, number],
+    safetyWeight: number = 0.7 // 0 = fast, 1 = safe
+  ): Promise<{
+    coordinates: [number, number][]
+    distance: number
+    estimatedTime: number
+    averageSafetyScore: number
+    minimumSafetyScore: number
+  }> {
+    // Find nearest road network nodes
+    const originNode = await this.findNearestNode(origin)
+    const destNode = await this.findNearestNode(destination)
+
+    // Calculate route using pgRouting with custom cost function
+    const query = `
+      WITH route AS (
+        SELECT * FROM pgr_dijkstra(
+          'SELECT id, source, target, 
+           cost * (1 + ${1 - safetyWeight} * time_factor + ${safetyWeight} * safety_factor) as cost,
+           reverse_cost * (1 + ${1 - safetyWeight} * time_factor + ${safetyWeight} * safety_factor) as reverse_cost
+           FROM road_network',
+          $1, $2, directed := false
+        )
+      )
+      SELECT 
+        ST_AsGeoJSON(rn.geometry) as geometry,
+        rn.length_meters as distance,
+        rn.estimated_time_seconds as time,
+        sh.overall_safety_score as safety_score
+      FROM route r
+      JOIN road_network rn ON r.edge = rn.id
+      LEFT JOIN safety_hexagons sh ON ST_Intersects(rn.geometry, sh.geometry)
+      ORDER BY r.seq
+    `
+
+    const result = await pgPool.query(query, [originNode, destNode])
+
+    // Process results
+    const coordinates: [number, number][] = []
+    let totalDistance = 0
+    let totalTime = 0
+    const safetyScores: number[] = []
+
+    for (const row of result.rows) {
+      const geom = JSON.parse(row.geometry)
+      coordinates.push(...geom.coordinates)
+      totalDistance += row.distance
+      totalTime += row.time
+      if (row.safety_score) {
+        safetyScores.push(row.safety_score)
       }
     }
-    
-    // Fallback to local Whisper-Tiny
-    return await this.whisperTFLite.transcribe(audioBuffer)
+
+    return {
+      coordinates,
+      distance: totalDistance,
+      estimatedTime: totalTime,
+      averageSafetyScore: safetyScores.reduce((a, b) => a + b, 0) / safetyScores.length,
+      minimumSafetyScore: Math.min(...safetyScores)
+    }
   }
-  
-  private isOnline(): boolean {
-    return navigator.onLine && this.networkQuality !== 'OFFLINE'
+
+  private async findNearestNode(location: [number, number]): Promise<number> {
+    const query = `
+      SELECT id
+      FROM road_network_nodes
+      ORDER BY geometry <-> ST_SetSRID(ST_MakePoint($1, $2), 4326)
+      LIMIT 1
+    `
+    const result = await pgPool.query(query, [location[1], location[0]])
+    return result.rows[0].id
   }
 }
 ```
-
-**Trade-offs**:
-- Bhashini: Lower latency (<200ms), higher accuracy, requires internet
-- Whisper-Tiny: Higher latency (~2-3s), lower accuracy, works offline
-- Strategy: Always prefer Bhashini when available, fallback to Whisper for offline scenarios
-
 
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system—essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
 ### Property 1: NER Accuracy Threshold
-
 *For any* batch of translated texts containing known location entities and safety intents, the IndicBERT_Engine should extract at least 85% of the entities correctly.
-
 **Validates: Requirements 1.2**
 
 ### Property 2: Language Consistency in Responses
-
-*For any* voice command processed in a supported language (Hindi, Tamil, Bhojpuri, etc.), the audio feedback provided by the system should be in the same language as the input.
-
+*For any* voice command processed in a supported language, the audio feedback provided should be in the same language as the input.
 **Validates: Requirements 1.4**
 
 ### Property 3: Offline Map Rendering
-
-*For any* geographic location that has cached PMTiles data, the system should be able to render vector maps without internet connectivity.
-
+*For any* geographic location with cached PMTiles data, the system should render vector maps without internet connectivity.
 **Validates: Requirements 2.2**
 
 ### Property 4: Last-Write-Wins Conflict Resolution
-
-*For any* pair of conflicting offline edits to the same data entity, the WatermelonDB_Sync should preserve the edit with the later device timestamp after synchronization.
-
+*For any* pair of conflicting offline edits, the system should preserve the edit with the later timestamp after synchronization.
 **Validates: Requirements 2.3, 10.1**
 
-### Property 5: Cache Prioritization
-
-*For any* set of Safety_Hexagons competing for limited storage space, hexagons with higher risk scores (lower safety scores) and hexagons on frequently traveled routes should be retained over others.
-
-**Validates: Requirements 2.5**
-
-### Property 6: Beckn Message Generation
-
-*For any* SOS trigger event, the generated Beckn Protocol search intent packet should contain valid location coordinates, emergency type, and conform to Beckn Core Specification v1.0 schema.
-
+### Property 5: Beckn Message Generation
+*For any* SOS trigger event, the generated Beckn Protocol search intent should contain valid location coordinates, emergency type, and conform to Beckn Core Specification v1.0 schema.
 **Validates: Requirements 3.1, 13.2**
 
-### Property 7: Responder Broadcast Radius
-
-*For any* SOS broadcast at a given location, all registered SOS_Responders whose base location or coverage area intersects with a 5-kilometer radius should receive the search intent.
-
+### Property 6: Responder Broadcast Radius
+*For any* SOS broadcast at a given location, all registered responders within a 5-kilometer radius should receive the search intent.
 **Validates: Requirements 3.2, 8.2**
 
-### Property 8: Responder Response Validation
-
-*For any* on_search response received from a responder, the message should contain required fields: responder ID, estimated arrival time, capabilities, and reputation score.
-
-**Validates: Requirements 3.3**
-
-### Property 9: Responder Ranking
-
-*For any* set of responder offers, when displayed to the user, they should be sorted primarily by proximity (distance to incident) and secondarily by reputation score (descending).
-
-**Validates: Requirements 3.4**
-
-### Property 10: Beckn Workflow State Progression
-
-*For any* responder selection by a user, the Beckn protocol state machine should progress sequentially through: search → on_search → init → confirm, without skipping states.
-
-**Validates: Requirements 3.5**
-
-### Property 11: H3 Resolution Assignment
-
-*For any* geographic coordinate, it should be mapped to a Resolution 9 H3 hexagon in urban areas and Resolution 10 H3 hexagon in high-density zones, based on population density thresholds.
-
+### Property 7: H3 Resolution Assignment
+*For any* geographic coordinate, it should be mapped to Resolution 9 H3 hexagon in urban areas and Resolution 10 in high-density zones.
 **Validates: Requirements 4.1, 4.2**
 
-### Property 12: Safety Score Aggregation
-
-*For any* Safety_Hexagon, the overall safety score should be calculated as a weighted combination of crime score, streetlight score, crowd score, and police presence score, using AHP-derived weights.
-
+### Property 8: Safety Score Aggregation
+*For any* Safety_Hexagon, the overall safety score should be calculated as a weighted combination of crime, streetlight, crowd, and police presence scores using AHP-derived weights.
 **Validates: Requirements 4.3**
 
-### Property 13: Safety Color Mapping
-
-*For any* safety score value between 0 and 100, there should be a deterministic color mapping on a gradient from red (0, unsafe) through yellow (50, moderate) to green (100, safe).
-
-**Validates: Requirements 4.4**
-
-### Property 14: AHP Consistency Validation
-
-*For any* pairwise comparison matrix used in AHP calculation, the consistency ratio should be computed, and matrices with CR > 0.1 should be rejected in favor of default weights.
-
+### Property 9: AHP Consistency Validation
+*For any* pairwise comparison matrix, the consistency ratio should be computed, and matrices with CR > 0.1 should be rejected.
 **Validates: Requirements 5.1, 5.2**
 
-### Property 15: Safest Route Prioritization
-
-*For any* set of calculated route options between two points, the route with the highest average safety score should be presented as the primary recommendation to the user.
-
-**Validates: Requirements 5.3**
-
-### Property 16: Route Metrics Completeness
-
-*For any* calculated Safe_Route, the output should include all three metrics: safety score, estimated travel time, and total distance.
-
-**Validates: Requirements 5.4**
-
-### Property 17: Safety-Speed Tradeoff
-
-*For any* user-adjusted safety weight preference (0 to 1), route calculations should proportionally balance safety factors versus travel time, where weight=1 maximizes safety and weight=0 minimizes time.
-
-**Validates: Requirements 5.5**
-
-### Property 18: Reputation Score Calculation
-
-*For any* user with a history of crowdsourced contributions, their EigenTrust reputation score should be calculated based on the accuracy of their historical submissions as verified by other trusted users.
-
+### Property 10: Reputation Score Calculation
+*For any* user with submission history, their EigenTrust reputation score should be calculated based on historical accuracy.
 **Validates: Requirements 6.1**
 
-### Property 19: Reputation-Weighted Aggregation
-
-*For any* set of crowdsourced safety observations for a hexagon, contributions from users with higher reputation scores should have proportionally greater influence on the aggregated safety score.
-
-**Validates: Requirements 6.2**
-
-### Property 20: Sybil Attack Mitigation
-
-*For any* cluster of accounts exhibiting coordinated behavior patterns (similar submission times, locations, and content), the EigenTrust algorithm should reduce their collective reputation scores below the individual average.
-
-**Validates: Requirements 6.3**
-
-### Property 21: EigenTrust Convergence
-
-*For any* trust matrix, the EigenTrust iteration should either converge (delta < 0.001) or terminate after exactly 50 iterations, whichever comes first.
-
+### Property 11: EigenTrust Convergence
+*For any* trust matrix, the EigenTrust iteration should either converge (delta < 0.001) or terminate after exactly 50 iterations.
 **Validates: Requirements 6.4**
 
-### Property 22: Low Reputation Flagging
-
-*For any* user whose EigenTrust reputation score falls below 0.3, all their subsequent contributions should be automatically flagged for manual review.
-
-**Validates: Requirements 6.5**
-
-### Property 23: Danger Sound Confirmation
-
-*For any* acoustic signature detected by YAMNet with confidence between 0.6 and 1.0, the system should prompt the user for confirmation before broadcasting an SOS.
-
-**Validates: Requirements 7.4**
-
-### Property 24: Responder Navigation Provision
-
-*For any* SOS alert accepted by a responder, the system should provide turn-by-turn navigation from the responder's current location to the incident location.
-
-**Validates: Requirements 8.3**
-
-### Property 25: Bilateral Feedback Collection
-
-*For any* incident marked as resolved, the system should collect feedback from both the SOS requester and the responding party to update their respective reputation scores.
-
-**Validates: Requirements 8.4**
-
-### Property 26: Location Entity Extraction
-
-*For any* vernacular text containing location references (street names, landmarks, neighborhoods), the IndicBERT_Engine should extract these as location entities with type annotations.
-
-**Validates: Requirements 9.1**
-
-### Property 27: Entity Geocoding
-
-*For any* extracted location entity, the system should attempt to resolve it to geographic coordinates using local geocoding databases, returning coordinates or an error if unresolvable.
-
-**Validates: Requirements 9.2**
-
-### Property 28: Ambiguity Clarification
-
-*For any* location entity with multiple possible geographic interpretations (confidence spread > 0.3), the system should prompt the user for clarification via voice.
-
-**Validates: Requirements 9.3**
-
-### Property 29: Unresolvable Location Handling
-
-*For any* location entity that cannot be resolved to coordinates after geocoding attempts, the system should request additional context from the user in their native language.
-
-**Validates: Requirements 9.5**
-
-### Property 30: Sync Data Preservation
-
-*For any* synchronization operation involving Safety_Hexagon updates, all data from both server-side and client-side changes should be preserved without loss, using merge strategies where applicable.
-
-**Validates: Requirements 10.2**
-
-### Property 31: Exponential Backoff Retry
-
-*For any* failed sync operation, the system should retry with exponentially increasing delays (1min, 2min, 4min, 8min, 16min) up to a maximum of 5 attempts before marking the sync as failed.
-
-**Validates: Requirements 10.3**
-
-### Property 32: Change Audit Logging
-
-*For any* data modification (create, update, delete) performed offline, an entry should be added to the local change log with timestamp, entity type, operation type, and change payload.
-
-**Validates: Requirements 10.4**
-
-### Property 33: Significant Change Notification
-
-*For any* completed sync operation where Safety_Hexagon scores in the user's frequent locations changed by more than 15 points, a notification should be sent to the user.
-
-**Validates: Requirements 10.5**
-
-### Property 34: Payload Compression
-
-*For any* data transmission over the network (excluding real-time WebSocket audio), the payload should be compressed using gzip or brotli compression before transmission.
-
-**Validates: Requirements 11.1**
-
-### Property 35: Adaptive Quality Reduction
-
-*For any* network connection detected as 2G or 3G, the system should reduce map tile quality and limit real-time updates to critical safety information only.
-
-**Validates: Requirements 11.2**
-
-### Property 36: Safety Data Loading Priority
-
-*For any* map loading sequence, Safety_Hexagon data should be fetched and rendered before decorative map elements (building footprints, park boundaries, etc.).
-
-**Validates: Requirements 11.3**
-
-### Property 37: Bandwidth Fallback Mode
-
-*For any* network connection with measured bandwidth below 50 kbps, the system should switch to text-only mode for SOS communication, disabling image and audio transmission.
-
-**Validates: Requirements 11.4**
-
-### Property 38: Response Caching
-
-*For any* API request that is repeated within a 5-minute window with identical parameters, the cached response should be returned instead of making a new network request.
-
-**Validates: Requirements 11.5**
-
-### Property 39: Location Anonymization
-
-*For any* location data point stored in location history, it should be stored as an H3 hexagon identifier (resolution 9 or 10) rather than precise GPS coordinates.
-
-**Validates: Requirements 12.1**
-
-### Property 40: Location Transmission Encryption
-
-*For any* location data transmitted over the network, the payload should be encrypted using end-to-end encryption (TLS 1.3 minimum) before transmission.
-
-**Validates: Requirements 12.2**
-
-### Property 41: Aggregation Privacy
-
-*For any* safety score calculation, the underlying data should be aggregated across at least 10 distinct users to prevent individual identification through score analysis.
-
-**Validates: Requirements 12.4**
-
-### Property 42: Conditional Location Sharing
-
-*For any* SOS broadcast that has not been confirmed by the user, precise location data should not be shared with third-party responders; only the H3 hexagon identifier should be shared.
-
-**Validates: Requirements 12.5**
-
-### Property 43: Beckn Message Parsing
-
-*For any* JSON payload conforming to Beckn Core Specification v1.0, the parser should successfully deserialize it into a valid Beckn message object without errors.
-
-**Validates: Requirements 13.1**
-
-### Property 44: Beckn Round-Trip Consistency
-
-*For any* valid Beckn Protocol message object, serializing it to JSON, then parsing the JSON, then serializing again should produce an equivalent JSON structure (round-trip property).
-
+### Property 12: Beckn Round-Trip Consistency
+*For any* valid Beckn Protocol message object, serializing to JSON, parsing, then serializing again should produce an equivalent JSON structure.
 **Validates: Requirements 13.4**
 
-### Property 45: Beckn Error Reporting
-
-*For any* malformed Beckn Protocol JSON that violates the schema (missing required fields, invalid field types), the parser should return a descriptive error message indicating the specific schema violation.
-
-**Validates: Requirements 13.5**
-
-### Property 46: H3 Serialization Format
-
-*For any* H3 hexagon identifier, when serialized, it should be represented as either a 64-bit unsigned integer or a 15-character hexadecimal string, consistently within the same context.
-
-**Validates: Requirements 14.1**
-
-### Property 47: H3 Resolution Validation
-
-*For any* H3 index being deserialized, the system should validate that its resolution is either 9 or 10, rejecting indices with other resolutions with a validation error.
-
-**Validates: Requirements 14.2**
-
-### Property 48: H3 Round-Trip Consistency
-
-*For any* valid H3 hexagon identifier, serializing it to string format, then deserializing it back, should produce an equivalent H3 index that represents the same geographic hexagon (round-trip property).
-
+### Property 13: H3 Round-Trip Consistency
+*For any* valid H3 hexagon identifier, serializing to string then deserializing should produce an equivalent H3 index representing the same geographic hexagon.
 **Validates: Requirements 14.4**
 
-### Property 49: H3 Error Reporting
-
-*For any* invalid H3 index string (wrong length, invalid characters, invalid resolution), the deserializer should reject it with a clear error message indicating the specific validation failure.
-
-**Validates: Requirements 14.5**
-
+(Note: Full 49 properties from prework are documented but abbreviated here for brevity. Implementation will reference all properties.)
 
 ## Error Handling
 
-### Error Categories and Strategies
+### Error Categories
 
-#### 1. Network Errors
+**1. Network Errors**:
+- Bhashini WebSocket disconnection → Fallback to Web Speech API
+- Beckn Gateway unreachable → Queue SOS locally, retry with exponential backoff
+- API timeout → Return cached data if available, show offline indicator
 
-**Scenarios**:
-- Bhashini WebSocket disconnection
-- Beckn Gateway unreachable
-- API timeout during sync
-- Intermittent connectivity
+**2. Data Validation Errors**:
+- Invalid H3 index → Reject with descriptive error message
+- Malformed Beckn message → Return schema violation details
+- Out-of-range safety scores → Clamp to valid range (0-100)
 
-**Handling Strategy**:
-- **Graceful Degradation**: Fall back to offline capabilities (local ASR, cached maps, queued SOS)
-- **Retry with Backoff**: Exponential backoff for transient failures (1min, 2min, 4min, 8min, 16min)
-- **User Notification**: Inform user of offline mode with clear visual indicators
-- **Queue Critical Operations**: SOS broadcasts queued locally and transmitted when connectivity restored
+**3. Service Degradation**:
+- IndicBERT unavailable → Use simple keyword-based entity extraction
+- PostGIS connection lost → Fall back to MongoDB geospatial queries
+- Redis cache miss → Query database directly
 
-**Implementation**:
-```typescript
-class NetworkErrorHandler {
-  async handleNetworkError(error: NetworkError, operation: Operation): Promise<void> {
-    if (operation.isCritical && operation.type === 'SOS_BROADCAST') {
-      // Queue for immediate retry when online
-      await this.sosQueue.enqueue(operation)
-      this.showNotification('SOS queued - will send when online')
-    } else {
-      // Standard exponential backoff
-      const delay = this.calculateBackoff(operation.attemptCount)
-      await this.scheduleRetry(operation, delay)
-    }
-    
-    // Switch to offline mode if multiple failures
-    if (this.consecutiveFailures > 3) {
-      this.switchToOfflineMode()
-    }
-  }
-}
-```
+**4. Security Errors**:
+- Unauthorized access → Return 401, log attempt, apply rate limiting
+- Sybil attack detected → Reduce reputation scores, flag for review
+- Location data leak attempt → Deny access, audit log
 
-#### 2. Data Validation Errors
-
-**Scenarios**:
-- Invalid H3 index format
-- Malformed Beckn Protocol message
-- Out-of-range safety scores
-- Inconsistent AHP matrix
-
-**Handling Strategy**:
-- **Fail Fast**: Reject invalid data immediately with descriptive errors
-- **Schema Validation**: Validate all external data against schemas before processing
-- **Sanitization**: Sanitize user inputs to prevent injection attacks
-- **Default Fallbacks**: Use safe defaults when validation fails (e.g., default AHP weights)
-
-**Implementation**:
-```typescript
-class ValidationErrorHandler {
-  validateH3Index(h3String: string): H3Index {
-    if (!this.isValidH3Format(h3String)) {
-      throw new ValidationError(
-        `Invalid H3 index format: ${h3String}. Expected 15-character hex string.`
-      )
-    }
-    
-    const resolution = h3.getResolution(h3String)
-    if (resolution !== 9 && resolution !== 10) {
-      throw new ValidationError(
-        `Invalid H3 resolution: ${resolution}. Expected 9 or 10.`
-      )
-    }
-    
-    return h3String as H3Index
-  }
-}
-```
-
-#### 3. Service Degradation Errors
-
-**Scenarios**:
-- IndicBERT NER accuracy drops below threshold
-- YAMNet false positive rate increases
-- Beckn responder network unavailable
-- Database connection pool exhausted
-
-**Handling Strategy**:
-- **Circuit Breaker**: Temporarily disable failing services after threshold failures
-- **Fallback Services**: Switch to alternative implementations (Whisper for Bhashini, local geocoding)
-- **Rate Limiting**: Throttle requests to prevent cascade failures
-- **Health Monitoring**: Continuous health checks with automatic recovery
-
-**Implementation**:
-```typescript
-class CircuitBreaker {
-  private failureCount = 0
-  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED'
-  
-  async execute<T>(operation: () => Promise<T>, fallback: () => Promise<T>): Promise<T> {
-    if (this.state === 'OPEN') {
-      console.warn('Circuit breaker OPEN, using fallback')
-      return fallback()
-    }
-    
-    try {
-      const result = await operation()
-      this.onSuccess()
-      return result
-    } catch (error) {
-      this.onFailure()
-      
-      if (this.state === 'OPEN') {
-        return fallback()
-      }
-      throw error
-    }
-  }
-  
-  private onFailure(): void {
-    this.failureCount++
-    if (this.failureCount >= 5) {
-      this.state = 'OPEN'
-      setTimeout(() => this.state = 'HALF_OPEN', 60000) // Try again after 1 min
-    }
-  }
-}
-```
-
-#### 4. Privacy and Security Errors
-
-**Scenarios**:
-- Encryption key unavailable
-- Location data leak attempt
-- Unauthorized responder access
-- Sybil attack detected
-
-**Handling Strategy**:
-- **Fail Secure**: Deny access by default; never expose sensitive data on error
-- **Audit Logging**: Log all security-relevant events for forensic analysis
-- **Rate Limiting**: Prevent brute force and enumeration attacks
-- **Reputation Penalties**: Reduce trust scores for suspicious behavior
-
-**Implementation**:
-```typescript
-class SecurityErrorHandler {
-  handleUnauthorizedAccess(userId: string, resource: string): void {
-    // Log security event
-    this.auditLog.record({
-      event: 'UNAUTHORIZED_ACCESS_ATTEMPT',
-      userId,
-      resource,
-      timestamp: Date.now(),
-      ipAddress: this.getClientIP()
-    })
-    
-    // Apply rate limiting
-    this.rateLimiter.penalize(userId, 'UNAUTHORIZED_ACCESS')
-    
-    // Reduce reputation if pattern detected
-    if (this.detectSuspiciousPattern(userId)) {
-      this.reputationService.applyPenalty(userId, 0.1)
-    }
-    
-    // Return generic error (don't leak information)
-    throw new UnauthorizedError('Access denied')
-  }
-}
-```
-
-#### 5. User Input Errors
-
-**Scenarios**:
-- Unintelligible voice input
-- Ambiguous location reference
-- Invalid route preferences
-- Malformed SOS description
-
-**Handling Strategy**:
-- **Clarification Prompts**: Ask user to rephrase or provide more context
-- **Suggestions**: Offer likely interpretations for ambiguous inputs
-- **Constraints**: Guide users toward valid inputs with UI constraints
-- **Graceful Defaults**: Use reasonable defaults when input is unclear
-
-**Implementation**:
-```typescript
-class UserInputErrorHandler {
-  async handleAmbiguousLocation(
-    entity: string, 
-    candidates: Location[]
-  ): Promise<Location> {
-    if (candidates.length === 0) {
-      // No matches found
-      await this.voiceService.speak(
-        'मुझे वह स्थान नहीं मिला। कृपया अधिक विवरण दें।',
-        'hi'
-      )
-      return this.requestClarification()
-    }
-    
-    if (candidates.length === 1) {
-      // Single match, confirm with user
-      await this.voiceService.speak(
-        `क्या आपका मतलब ${candidates[0].name} है?`,
-        'hi'
-      )
-      const confirmed = await this.waitForConfirmation()
-      return confirmed ? candidates[0] : this.requestClarification()
-    }
-    
-    // Multiple matches, present options
-    return this.presentLocationOptions(candidates)
-  }
-}
-```
-
-### Error Monitoring and Alerting
-
-**Metrics to Track**:
-- Error rate by category (network, validation, service, security, user input)
-- Mean time to recovery (MTTR) for service degradations
-- Circuit breaker state transitions
-- SOS queue depth and age
-- Failed sync operations count
-
-**Alerting Thresholds**:
-- Critical: SOS broadcast failure rate > 1%
-- High: Beckn responder network unavailable > 5 minutes
-- Medium: NER accuracy < 80% over 1 hour
-- Low: Sync failure rate > 10%
+**5. User Input Errors**:
+- Unintelligible voice → Ask user to repeat
+- Ambiguous location → Present options for clarification
+- Invalid route preferences → Use safe defaults
 
 ## Testing Strategy
 
 ### Dual Testing Approach
 
-MargMitra employs a comprehensive testing strategy combining unit tests for specific scenarios and property-based tests for universal correctness guarantees. Both approaches are complementary and necessary for ensuring system reliability.
+MargMitra employs comprehensive testing combining unit tests for specific scenarios and property-based tests for universal correctness. Both approaches are complementary and necessary.
 
-**Unit Tests**: Focus on specific examples, edge cases, integration points, and error conditions. Unit tests validate concrete scenarios and catch specific bugs.
+**Unit Tests**: Validate specific examples, edge cases, integration points, and error conditions. Catch concrete bugs.
 
-**Property Tests**: Focus on universal properties that should hold across all inputs. Property tests use randomized input generation to verify correctness properties and catch edge cases that might be missed by example-based tests.
-
-Together, these approaches provide comprehensive coverage: unit tests validate specific behaviors while property tests verify general correctness across the input space.
+**Property Tests**: Verify universal properties across randomized inputs. Catch edge cases missed by examples.
 
 ### Property-Based Testing Configuration
 
-**Library Selection**:
+**Libraries**:
 - **TypeScript/JavaScript**: fast-check
-- **Python**: Hypothesis
-- **Kotlin/Android**: Kotest Property Testing
+- **Python** (if used for ML services): Hypothesis
 
-**Configuration Standards**:
-- Minimum 100 iterations per property test (due to randomization)
-- Seed-based reproducibility for failed test cases
+**Configuration**:
+- Minimum 100 iterations per property test
+- Seed-based reproducibility for failed cases
 - Shrinking enabled to find minimal failing examples
 - Timeout: 30 seconds per property test
 
 **Tagging Convention**:
-Each property-based test must include a comment tag referencing the design document property:
-
 ```typescript
-// Feature: marg-mitra-civic-neural-grid, Property 44: Beckn Round-Trip Consistency
+// Feature: marg-mitra-civic-neural-grid, Property 12: Beckn Round-Trip Consistency
 test('Beckn message round-trip preserves structure', () => {
   fc.assert(
     fc.property(becknMessageArbitrary, (message) => {
@@ -1669,208 +1469,114 @@ test('Beckn message round-trip preserves structure', () => {
 
 ### Test Coverage by Component
 
-#### 1. Voice Interaction Module
+**Frontend (React)**:
+- Unit: Component rendering, Redux actions, service worker caching
+- Integration: Map interaction, voice input flow, SOS broadcast
+- E2E: Complete user journeys using Cypress
 
-**Unit Tests**:
-- Bhashini WebSocket connection establishment and teardown
-- Audio chunk streaming with correct sequence numbers
-- TTS playback for each supported language
-- Fallback to Whisper-Tiny when offline
+**Backend (Node.js)**:
+- Unit: API endpoints, service methods, database queries
+- Property: AHP consistency, EigenTrust convergence, H3 serialization
+- Integration: Bhashini integration, Beckn workflow, database sync
 
-**Property Tests**:
-- Property 2: Language consistency in responses (any command → same language response)
-- Audio buffer handling for various sizes and formats
-- Session management across reconnections
-
-#### 2. Named Entity Recognition Module
-
-**Unit Tests**:
-- Entity extraction for common landmarks (Gateway of India, Connaught Place)
-- Intent classification for each intent type (SOS, NAVIGATE, QUERY_SAFETY, REPORT_INCIDENT)
-- Geocoding resolution for ambiguous locations
-- Error handling for unrecognized entities
-
-**Property Tests**:
-- Property 1: NER accuracy threshold (≥85% extraction rate across random texts)
-- Property 26: Location entity extraction (any text with locations → entities extracted)
-- Property 27: Entity geocoding (any entity → coordinates or error)
-- Property 28: Ambiguity clarification (any ambiguous entity → clarification prompt)
-
-#### 3. Offline Map Module
-
-**Unit Tests**:
-- PMTiles download for specific city boundaries
-- Cache eviction when storage limit reached
-- Map rendering at various zoom levels
-- Style application for safety overlay
-
-**Property Tests**:
-- Property 3: Offline map rendering (any cached location → renders without network)
-- Property 36: Safety data loading priority (safety data loads before decorative elements)
-- Cache hit rate for frequently accessed tiles
-
-#### 4. Safety Intelligence Module
-
-**Unit Tests**:
-- H3 index generation for specific coordinates
-- Safety score calculation with known factor values
-- AHP matrix consistency ratio calculation
-- EigenTrust convergence for small trust networks
-
-**Property Tests**:
-- Property 11: H3 resolution assignment (any coordinate → correct resolution hexagon)
-- Property 12: Safety score aggregation (any hexagon → weighted score from factors)
-- Property 13: Safety color mapping (any score → deterministic color)
-- Property 14: AHP consistency validation (any matrix → CR calculated, >0.1 rejected)
-- Property 18: Reputation score calculation (any user history → valid reputation)
-- Property 19: Reputation-weighted aggregation (higher reputation → more influence)
-- Property 21: EigenTrust convergence (any trust matrix → converges or stops at 50 iterations)
-
-#### 5. Beckn Protocol Integration Module
-
-**Unit Tests**:
-- SOS broadcast for each emergency type
-- Responder response parsing
-- State machine transitions (search → on_search → init → confirm)
-- Transaction ID generation and tracking
-
-**Property Tests**:
-- Property 6: Beckn message generation (any SOS → valid Beckn search intent)
-- Property 7: Responder broadcast radius (any location → responders within 5km notified)
-- Property 8: Responder response validation (any response → contains required fields)
-- Property 9: Responder ranking (any response set → sorted by proximity and reputation)
-- Property 10: Beckn workflow state progression (any selection → sequential state transitions)
-- Property 43: Beckn message parsing (any valid JSON → parses successfully)
-- Property 44: Beckn round-trip consistency (any message → serialize → parse → serialize = same)
-- Property 45: Beckn error reporting (any invalid JSON → descriptive error)
-
-#### 6. Acoustic Detection Module
-
-**Unit Tests**:
-- YAMNet model loading and initialization
-- Danger sound detection for each danger class (screaming, gunshot, etc.)
-- Background monitoring start/stop
-- Battery impact measurement
-
-**Property Tests**:
-- Property 23: Danger sound confirmation (any detection 0.6-1.0 confidence → user prompt)
-- Audio preprocessing for various sample rates
-- False positive rate measurement
-
-#### 7. Data Synchronization Module
-
-**Unit Tests**:
-- Sync operation for each entity type
-- Conflict resolution with specific timestamps
-- Retry logic with exponential backoff
-- Change log entry creation
-
-**Property Tests**:
-- Property 4: Last-Write-Wins conflict resolution (any conflicting edits → later timestamp wins)
-- Property 30: Sync data preservation (any sync → no data loss)
-- Property 31: Exponential backoff retry (any failed sync → correct retry delays)
-- Property 32: Change audit logging (any modification → log entry created)
-- Property 33: Significant change notification (any large score change → notification sent)
-
-#### 8. Network Optimization Module
-
-**Unit Tests**:
-- Payload compression for specific data types
-- Network quality detection (2G/3G/4G/5G)
-- Cache hit/miss for repeated requests
-- Bandwidth measurement
-
-**Property Tests**:
-- Property 34: Payload compression (any network transmission → compressed)
-- Property 35: Adaptive quality reduction (any 2G/3G connection → reduced quality)
-- Property 37: Bandwidth fallback mode (any <50kbps connection → text-only mode)
-- Property 38: Response caching (any repeated request within 5min → cached response)
-
-#### 9. Privacy Module
-
-**Unit Tests**:
-- Location anonymization for specific GPS coordinates
-- Encryption key generation and rotation
-- User data deletion
-- Aggregation with various user counts
-
-**Property Tests**:
-- Property 39: Location anonymization (any GPS coordinate → stored as H3 index)
-- Property 40: Location transmission encryption (any location transmission → encrypted)
-- Property 41: Aggregation privacy (any safety score → aggregated across ≥10 users)
-- Property 42: Conditional location sharing (any unconfirmed SOS → only H3 shared)
-
-#### 10. Serialization Module
-
-**Unit Tests**:
-- H3 index serialization to hex string
-- H3 index deserialization from integer
-- Beckn message serialization to JSON
-- Error messages for invalid formats
-
-**Property Tests**:
-- Property 46: H3 serialization format (any H3 index → uint64 or 15-char hex)
-- Property 47: H3 resolution validation (any deserialized H3 → resolution 9 or 10)
-- Property 48: H3 round-trip consistency (any H3 → serialize → deserialize = same hexagon)
-- Property 49: H3 error reporting (any invalid H3 → clear error message)
+**Database**:
+- Unit: Schema validation, constraint enforcement
+- Property: Geospatial queries, safety score calculations
+- Performance: Query optimization, index effectiveness
 
 ### Integration Testing
 
-**Critical Integration Points**:
-1. Bhashini WebSocket → IndicBERT NER → Intent Classification pipeline
-2. SOS Trigger → Beckn Broadcast → Responder Response → User Selection flow
-3. Offline Map Cache → Safety Overlay → Route Calculation integration
-4. Crowdsource Submission → EigenTrust Validation → Safety Score Update pipeline
-
-**Integration Test Scenarios**:
-- End-to-end SOS flow from voice trigger to responder confirmation
-- Offline-to-online transition with queued operations
-- Multi-language voice interaction with entity extraction
-- Safe route calculation with real-time safety score updates
+**Critical Flows**:
+1. Voice SOS → Bhashini → IndicBERT → Beckn → Responder
+2. Offline map → Service worker → IndexedDB → Online sync
+3. Crowdsource → Reputation → Safety score → Map update
 
 ### Performance Testing
 
-**Load Testing Targets**:
-- 10,000 concurrent users during peak hours
+**Targets**:
+- API response time: <200ms p95
+- Map rendering: <1s initial load
+- Voice transcription: <300ms p95
+- SOS broadcast: <500ms p95
+- Database queries: <50ms p95
+
+**Load Testing**:
+- 10,000 concurrent users
 - 100 SOS broadcasts per minute
 - 1,000 safety score queries per second
-- 50 Beckn responder responses per SOS
 
-**Latency Requirements**:
-- Bhashini ASR: <200ms p95
-- IndicBERT NER: <100ms p95
-- Safety score lookup: <50ms p95
-- Route calculation: <2s p95
-- SOS broadcast: <500ms p95
+## Deployment Architecture
 
-**Battery Impact Testing**:
-- YAMNet background monitoring: <5% battery per hour
-- Offline map rendering: <3% battery per hour of active use
-- Sync operations: <1% battery per sync cycle
+### Docker Containers
 
-### Security Testing
+```yaml
+# docker-compose.yml
+version: '3.8'
 
-**Penetration Testing Focus**:
-- Location data privacy (ensure no GPS leakage)
-- Sybil attack resistance (EigenTrust validation)
-- Responder impersonation prevention
-- API rate limiting and DDoS protection
+services:
+  frontend:
+    build: ./client
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    depends_on:
+      - backend
 
-**Compliance Testing**:
-- GDPR data deletion requirements
-- India's Personal Data Protection Bill compliance
-- Beckn Protocol specification conformance
-- Accessibility standards (WCAG 2.1 Level AA)
+  backend:
+    build: ./server
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/margmitra
+      - POSTGRES_URI=postgresql://postgres:password@postgres:5432/margmitra
+      - REDIS_URI=redis://redis:6379
+      - BHASHINI_API_KEY=${BHASHINI_API_KEY}
+      - BECKN_GATEWAY_URL=${BECKN_GATEWAY_URL}
+    depends_on:
+      - mongo
+      - postgres
+      - redis
+
+  mongo:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  postgres:
+    image: postgis/postgis:14-3.3
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=margmitra
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  mongo-data:
+  postgres-data:
+  redis-data:
+```
 
 ## Conclusion
 
-MargMitra's design prioritizes offline-first operation, linguistic inclusion, and decentralized safety through careful architectural choices and algorithmic rigor. The system leverages India Stack protocols (Bhashini, Beckn) and modern spatial intelligence (H3, PMTiles) to create a civic safety platform accessible to the Next Billion Users.
+MargMitra's hybrid MERN + India Stack design combines modern web technologies with government-backed civic infrastructure. The architecture leverages React PWA for offline-capable frontend, Node.js + Express for scalable backend, MongoDB for flexible application data, PostgreSQL/PostGIS for spatial queries, and integrates Bhashini for multilingual voice, Beckn for decentralized coordination, and H3 for privacy-preserving spatial indexing.
 
-Key design innovations include:
-- Voice-first vernacular interaction with fallback to edge AI
-- Hexagonal safety intelligence with mathematically consistent weighting (AHP)
-- Decentralized emergency response discovery via Beckn Protocol
-- Privacy-preserving location tracking using H3 anonymization
-- Sybil-resistant crowdsourcing through EigenTrust reputation
+Key innovations:
+- Hybrid database strategy (MongoDB + PostgreSQL) for optimal data modeling
+- Progressive enhancement with India Stack integration
+- Voice-first vernacular interaction with fallback mechanisms
+- Mathematically rigorous safety scoring (AHP) and reputation (EigenTrust)
+- Comprehensive property-based testing for correctness guarantees
 
-The comprehensive testing strategy, combining unit tests and property-based tests, ensures correctness across the input space while maintaining specific scenario validation. With 49 formally specified correctness properties, the system provides strong guarantees about its behavior under all conditions.
+The system is designed for the Next Billion Users with offline-first capabilities, multilingual support, and privacy-preserving location tracking.
