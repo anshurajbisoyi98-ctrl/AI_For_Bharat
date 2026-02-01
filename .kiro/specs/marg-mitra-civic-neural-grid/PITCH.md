@@ -207,10 +207,4 @@ India Stack: Bhashini + Beckn + H3
 
 ---
 
-## 📞 Contact
 
-- **Team**: [Your Name]
-- **Email**: your.email@example.com
-- **GitHub**: github.com/your-org/marg-mitra
-- **Demo**: [Live Demo URL]
-- **Slides**: [Pitch Deck URL]
