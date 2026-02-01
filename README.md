@@ -1,6 +1,7 @@
 # MargMitra: The Civic Neural Grid
 
-> **Voice-First Safety Intelligence for the Next Billion Users**
+> **"Choosing the safest way , not just the fastest"**
+>  **Voice-First Safety Intelligence for the Next Billion Users**
 
 [![India Stack](https://img.shields.io/badge/India%20Stack-Bhashini%20%7C%20Beckn%20%7C%20H3-orange)](https://indiastack.org)
 [![Tech Stack](https://img.shields.io/badge/Stack-MERN%20%2B%20PostGIS%20%2B%20Redis-blue)](https://github.com)
