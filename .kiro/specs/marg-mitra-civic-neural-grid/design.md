@@ -704,6 +704,37 @@ export class H3Service {
 }
 ```
 
+### 3.5 Data Ingestion Engine (ETL Pipeline)
+
+A dedicated ETL (Extract, Transform, Load) service responsible for populating the Safety Hexagons with official government data to supplement user observations.
+
+* **NCRB Scraper**: A Python-based microservice that parses annual PDF/Excel reports from `ncrb.gov.in`. It extracts district-level crime statistics (IPC/SLL counts), normalizes district names to standard ISO definitions, and maps them to H3 indices.
+* **Census Integration**: Connects to the Census of India API to fetch population density and demographic data. This is used to normalize crime counts (e.g., crimes per 100k capita) for fairer safety scoring.
+* **Infrastructure Seeder**: A geo-script that queries the OpenStreetMap (OSM) Overpass API to fetch static "Safety Havens" (Police Stations, Hospitals, 24x7 Petrol Pumps) and seeds them into the `Infrastructure` database collection.
+* **Orchestration**: Uses `node-cron` for scheduled updates (Weekly for infrastructure, Annually for NCRB data).
+
+### 3.6 Proactive Sentinel Service
+
+A background intelligence process running on the client device (Service Worker for PWA / Headless JS for Mobile) that monitors user safety passively.
+
+* **Trigger Logic**: `IF (User_Speed < 1km/h) AND (Hexagon_Risk_Score == HIGH) AND (Dwelling_Time > 5mins) THEN Trigger_Safety_Check()`.
+* **Escalation Protocol**:
+1.  **Stage 1**: Local Notification ("Are you safe?").
+2.  **Stage 2**: If no response in 120s, activate "High Alert" mode (audio recording starts).
+3.  **Stage 3**: If still no response, auto-trigger SOS via Beckn Protocol to nearby responders.
+* **Privacy**: Location processing happens locally on-device; coordinates are only transmitted if the check-in fails.
+
+### 3.7 Wearable Bridge (Hardware Layer)
+
+A lightweight bridge module designed to interface with wearable hardware (Smartwatches/Fitness Bands) for biometric telemetry.
+
+* **Protocol**: Uses Web Bluetooth API (where supported) or a native bridge shell.
+* **Telemetry**: Real-time ingestion of Heart Rate (HRV) and Accelerometer data.
+* **Fall Detection Algorithm**:
+* Detects high-G impact (>2.5G).
+* Monitors for zero-movement (post-impact) for 10 seconds.
+* Triggers an immediate high-priority SOS interrupt if conditions are met.
+
 ### 4. IndicBERT NER Service
 
 **Purpose**: Extract named entities (locations, times, emergency types) from vernacular text.

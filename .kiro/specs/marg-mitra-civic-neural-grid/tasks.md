@@ -685,6 +685,33 @@ This implementation plan breaks down the MargMitra civic safety platform into di
   - Verify wearable integration is functional
   - Verify comparative routing displays correctly
 
+- [ ] 31. Data Pipeline & Intelligence (The "Brain")
+  - [ ] 31.1 Implement NCRB & Census Scraper (Python/Node)
+    - Write ETL script to parse NCRB PDF/Excel files from `data/sources`
+    - Implement normalization logic to map District strings to H3 Lat/Long centroids
+    - _Requirements: 15.1, 15.3_
+  
+  - [ ] 31.2 Implement Infrastructure Seeder
+    - Write script to fetch Police/Hospitals/Fuel from Overpass API (OSM)
+    - Create `Infrastructure` Mongoose model and seed database
+    - _Requirements: 15.2, 15.4_
+  
+  - [ ] 31.3 Update Routing Algorithm (Safe vs Fast)
+    - Modify `RoutingService` to calculate two paths per request
+    - Implement AHP weight adjustment logic for the "Safest" path calculation
+    - _Requirements: 17.1, 17.2, 17.3_
+
+- [ ] 32. Proactive Safety & Hardware (The "Guardian")
+  - [ ] 32.1 Implement Sentinel Background Service
+    - Create `BackgroundLocationTask` (using Service Workers or Background Actions)
+    - Implement logic: `Stationary + HighRiskZone + Timer = TriggerAlert`
+    - _Requirements: 16.1, 16.2, 16.4_
+  
+  - [ ] 32.2 Wearable Integration (MVP Scope)
+    - Create `WatchConnector` module (Web Bluetooth or Native Bridge)
+    - Implement mock fall-detection logic (accelerometer thresholding)
+    - _Requirements: Hardware_
+
 - [ ] 30. Final Checkpoint - System Complete
   - Ensure all tests pass, ask the user if questions arise.
   - Verify all requirements are implemented
