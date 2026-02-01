@@ -5,9 +5,19 @@
 
 This implementation plan breaks down the MargMitra civic safety platform into discrete, manageable tasks. The platform uses MERN stack (MongoDB, Express, React, Node.js) integrated with India Stack protocols (Bhashini, Beckn, H3). Tasks are organized to build incrementally, with testing integrated throughout.
 
+## 🎯 Priority System
+
+Tasks are marked with priority levels for strategic execution:
+
+- **🔴 P0 (Demo Critical)**: Must implement for hackathon demo - core value proposition
+- **🟡 P1 (Demo Enhancement)**: Nice to have if time permits - improves demo quality
+- **🟢 P2 (Post-Demo)**: Build after hackathon - production readiness
+
+**Demo MVP Focus**: Implement all P0 tasks first (8-10 tasks, 2-4 weeks). This creates a working demo that showcases the 3 killer features: Voice SOS, Safety Map, Offline Mode.
+
 ## Tasks
 
-- [ ] 1. Project Setup and Infrastructure
+- [ ] 1. Project Setup and Infrastructure **🔴 P0**
   - Initialize monorepo with client (React) and server (Node.js) directories
   - Configure TypeScript for both frontend and backend
   - Set up Docker Compose with MongoDB, PostgreSQL/PostGIS, and Redis
@@ -15,7 +25,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
   - Set up ESLint, Prettier, and Git hooks
   - _Requirements: All (foundational)_
 
-- [ ] 2. Database Schema and Models
+- [ ] 2. Database Schema and Models **🔴 P0**
   - [ ] 2.1 Create MongoDB schemas using Mongoose
     - Implement User model with authentication fields
     - Implement Observation model with geospatial indexing
@@ -30,7 +40,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Add spatial indexes (GIST) for geometry columns
     - _Requirements: 4.1, 4.2, 4.3, 6.1, 8.1_
   
-  - [ ]* 2.3 Write property test for H3 serialization
+  - [ ]* 2.3 Write property test for H3 serialization **🟢 P2**
     - **Property 13: H3 Round-Trip Consistency**
     - **Validates: Requirements 14.4**
   
@@ -41,7 +51,8 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Add connection health checks and retry logic
     - _Requirements: 10.3_
 
-- [ ] 3. Authentication and Authorization
+- [ ] 3. Authentication and Authorization **🟡 P1**
+- [ ] 3. Authentication and Authorization **🟡 P1**
   - [ ] 3.1 Implement JWT-based authentication
     - Create user registration endpoint with bcrypt password hashing
     - Create login endpoint with JWT token generation
@@ -49,14 +60,14 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Implement auth middleware for protected routes
     - _Requirements: None (infrastructure)_
   
-  - [ ]* 3.2 Write unit tests for authentication
+  - [ ]* 3.2 Write unit tests for authentication **🟢 P2**
     - Test registration with valid/invalid inputs
     - Test login with correct/incorrect credentials
     - Test JWT token validation and expiration
     - Test auth middleware authorization logic
     - _Requirements: None (infrastructure)_
 
-- [ ] 4. H3 Spatial Indexing Service
+- [ ] 4. H3 Spatial Indexing Service **🔴 P0**
   - [ ] 4.1 Implement H3Service class
     - Implement coordinatesToH3 method for converting lat/lng to H3 index
     - Implement getHexagonBoundary for map rendering
@@ -64,15 +75,16 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Implement getAppropriateResolution based on population density
     - _Requirements: 4.1, 4.2_
   
-  - [ ]* 4.2 Write property test for H3 resolution assignment
+  - [ ]* 4.2 Write property test for H3 resolution assignment **🟢 P2**
     - **Property 7: H3 Resolution Assignment**
     - **Validates: Requirements 4.1, 4.2**
   
-  - [ ]* 4.3 Write property test for H3 serialization format
+  - [ ]* 4.3 Write property test for H3 serialization format **🟢 P2**
     - **Property 13: H3 Round-Trip Consistency**
     - **Validates: Requirements 14.1, 14.4**
 
-- [ ] 5. Bhashini Voice Integration
+- [ ] 5. Bhashini Voice Integration **🔴 P0**
+- [ ] 5. Bhashini Voice Integration **🔴 P0**
   - [ ] 5.1 Implement BhashiniService class
     - Implement transcribeAudio method for ASR
     - Implement synthesizeSpeech method for TTS
@@ -86,18 +98,19 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Add audio format validation and conversion
     - _Requirements: 1.1, 1.4_
   
-  - [ ]* 5.3 Write property test for language consistency
+  - [ ]* 5.3 Write property test for language consistency **🟢 P2**
     - **Property 2: Language Consistency in Responses**
     - **Validates: Requirements 1.4**
   
-  - [ ]* 5.4 Write unit tests for Bhashini integration
+  - [ ]* 5.4 Write unit tests for Bhashini integration **🟢 P2**
     - Test transcription with sample audio files
     - Test TTS synthesis for multiple languages
     - Test WebSocket connection handling
     - Test fallback to Web Speech API when offline
     - _Requirements: 1.3, 1.4_
 
-- [ ] 6. IndicBERT NER Service
+- [ ] 6. IndicBERT NER Service **🔴 P0**
+- [ ] 6. IndicBERT NER Service **🔴 P0**
   - [ ] 6.1 Implement IndicBERTService class
     - Implement extractEntities method for NER
     - Implement classifyIntent method for intent detection
@@ -105,25 +118,26 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Add confidence threshold handling
     - _Requirements: 1.2, 9.1, 9.2_
   
-  - [ ]* 6.2 Write property test for NER accuracy
+  - [ ]* 6.2 Write property test for NER accuracy **🟢 P2**
     - **Property 1: NER Accuracy Threshold**
     - **Validates: Requirements 1.2**
   
-  - [ ]* 6.3 Write property test for entity extraction
+  - [ ]* 6.3 Write property test for entity extraction **🟢 P2**
     - **Property: Location Entity Extraction**
     - **Validates: Requirements 9.1**
   
-  - [ ]* 6.4 Write unit tests for intent classification
+  - [ ]* 6.4 Write unit tests for intent classification **🟢 P2**
     - Test SOS intent detection with keywords
     - Test navigation intent detection
     - Test safety query intent detection
     - Test ambiguous input handling
     - _Requirements: 9.3, 9.5_
 
-- [ ] 7. Checkpoint - Core Services Functional
+- [ ] 7. Checkpoint - Core Services Functional **🔴 P0**
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Safety Intelligence Module
+- [ ] 8. Safety Intelligence Module **🔴 P0**
+- [ ] 8. Safety Intelligence Module **🔴 P0**
   - [ ] 8.1 Implement SafetyService class
     - Implement getSafetyScore method querying PostgreSQL
     - Implement updateSafetyScore method with factor aggregation
@@ -137,17 +151,17 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - POST /api/safety/observations for crowdsourced reports
     - _Requirements: 4.3, 4.4_
   
-  - [ ]* 8.3 Write property test for safety score aggregation
+  - [ ]* 8.3 Write property test for safety score aggregation **🟢 P2**
     - **Property 8: Safety Score Aggregation**
     - **Validates: Requirements 4.3**
   
-  - [ ]* 8.4 Write unit tests for safety calculations
+  - [ ]* 8.4 Write unit tests for safety calculations **🟢 P2**
     - Test safety score calculation with known factor values
     - Test hexagon color mapping for visualization
     - Test caching behavior for repeated queries
     - _Requirements: 4.4, 11.5_
 
-- [ ] 9. AHP Route Safety Weighting
+- [ ] 9. AHP Route Safety Weighting **🟢 P2**
   - [ ] 9.1 Implement AHPService class
     - Implement calculateWeights method with matrix normalization
     - Implement consistency ratio calculation
@@ -215,7 +229,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
 - [ ] 12. Checkpoint - Intelligence Layer Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Beckn Protocol Integration
+- [ ] 13. Beckn Protocol Integration **🔴 P0**
   - [ ] 13.1 Implement BecknService class
     - Implement broadcastSOS method creating search intent
     - Implement getResponderResponses for on_search collection
@@ -238,7 +252,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Test error handling for malformed messages
     - _Requirements: 3.5, 13.5_
 
-- [ ] 14. SOS Emergency Broadcast System
+- [ ] 14. SOS Emergency Broadcast System **🔴 P0**
   - [ ] 14.1 Implement SOS API endpoints
     - POST /api/sos/broadcast for triggering emergency
     - GET /api/sos/:id for SOS status
@@ -322,7 +336,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Test protected route behavior
     - _Requirements: None (infrastructure)_
 
-- [ ] 19. Map Visualization with Leaflet
+- [ ] 19. Map Visualization with Leaflet **🔴 P0**
   - [ ] 19.1 Implement MapView component
     - Integrate Leaflet.js for map rendering
     - Add user location tracking with Geolocation API
@@ -349,7 +363,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Test route display and metrics
     - _Requirements: 2.2, 4.4, 5.4_
 
-- [ ] 20. Voice Interaction UI
+- [ ] 20. Voice Interaction UI **🔴 P0**
   - [ ] 20.1 Implement VoiceInput component
     - Add microphone button with recording indicator
     - Integrate Web Speech API for browser-based ASR
@@ -408,7 +422,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Test submission handling
     - _Requirements: 10.4_
 
-- [ ] 23. Progressive Web App (PWA) Setup
+- [ ] 23. Progressive Web App (PWA) Setup **🔴 P0**
   - [ ] 23.1 Configure service worker
     - Implement cache-first strategy for static assets
     - Implement network-first strategy for API calls
@@ -434,7 +448,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Test online/offline state detection
     - _Requirements: 2.2, 2.3_
 
-- [ ] 24. Data Synchronization
+- [ ] 24. Data Synchronization **🔴 P0**
   - [ ] 24.1 Implement sync service
     - Detect online/offline state changes
     - Sync queued operations when online
@@ -470,7 +484,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Test Observation → Reputation → Safety score update pipeline
     - _Requirements: Multiple (integration)_
 
-- [ ] 27. Performance Optimization
+- [ ] 27. Performance Optimization **🟢 P2**
   - [ ] 27.1 Optimize database queries
     - Add database indexes for frequently queried fields
     - Optimize PostGIS spatial queries
@@ -492,7 +506,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Test database query performance
     - _Requirements: None (performance)_
 
-- [ ] 28. Security Hardening
+- [ ] 28. Security Hardening **🟢 P2**
   - [ ] 28.1 Implement security measures
     - Add rate limiting to API endpoints
     - Implement CORS configuration
@@ -515,7 +529,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Test location data anonymization
     - _Requirements: 12.1, 12.2, 12.4, 12.5_
 
-- [ ] 29. Documentation and Deployment
+- [ ] 29. Documentation and Deployment **🟢 P2**
   - [ ] 29.1 Write API documentation
     - Document all API endpoints with OpenAPI/Swagger
     - Add request/response examples
@@ -685,7 +699,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
   - Verify wearable integration is functional
   - Verify comparative routing displays correctly
 
-- [ ] 31. Data Pipeline & Intelligence (The "Brain")
+- [ ] 31. Data Pipeline & Intelligence (The "Brain") **🟡 P1**
   - [ ] 31.1 Implement NCRB & Census Scraper (Python/Node)
     - Write ETL script to parse NCRB PDF/Excel files from `data/sources`
     - Implement normalization logic to map District strings to H3 Lat/Long centroids
@@ -701,7 +715,7 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Implement AHP weight adjustment logic for the "Safest" path calculation
     - _Requirements: 17.1, 17.2, 17.3_
 
-- [ ] 32. Proactive Safety & Hardware (The "Guardian")
+- [ ] 32. Proactive Safety & Hardware (The "Guardian") **🟡 P1**
   - [ ] 32.1 Implement Sentinel Background Service
     - Create `BackgroundLocationTask` (using Service Workers or Background Actions)
     - Implement logic: `Stationary + HighRiskZone + Timer = TriggerAlert`
