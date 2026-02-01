@@ -175,13 +175,5 @@ npm test
 
 ---
 
-## 🏆 **Why This Wins**
 
-1. **Novel Approach**: First to combine India Stack (Bhashini, Beckn, H3) for civic safety
-2. **Real Impact**: Solves actual problems for 700M+ underserved Indians
-3. **Technical Depth**: Production-ready architecture with offline-first PWA, spatial databases, ML pipelines
-4. **Business Viability**: Clear monetization strategy with B2G, B2B, and freemium revenue streams
-5. **Scalability**: Designed for nationwide deployment from day one
-
----
 
