@@ -1,3 +1,4 @@
+
 # Implementation Plan: MargMitra (The Civic Neural Grid)
 
 ## Overview
@@ -535,6 +536,154 @@ This implementation plan breaks down the MargMitra civic safety platform into di
     - Document backup and recovery procedures
     - Add troubleshooting guide
     - _Requirements: None (documentation)_
+
+- [ ] 14. Data Pipeline & Intelligence
+  - [ ] 14.1 Implement DataIngestionService class
+    - Implement ingestNCRBData method for PDF parsing
+    - Implement ingestCensusData method for API integration
+    - Implement ingestOSMInfrastructure method for Overpass API
+    - Add parseNCRBText helper for crime data extraction
+    - Add updateCrimeScore and updatePopulationData methods
+    - _Requirements: 15.1, 15.2, 15.3, 15.4_
+  
+  - [ ] 14.2 Create infrastructure database schema
+    - Create infrastructure table in PostgreSQL with PostGIS
+    - Add spatial indexes for location queries
+    - Add type and h3_index indexes for filtering
+    - Create Infrastructure MongoDB model
+    - _Requirements: 15.4_
+  
+  - [ ] 14.3 Implement scheduled ETL jobs
+    - Set up node-cron for job scheduling
+    - Create monthly NCRB ingestion job
+    - Create quarterly Census ingestion job
+    - Create weekly OSM infrastructure ingestion job
+    - Add error handling and retry logic with exponential backoff
+    - _Requirements: 15.5, 15.6_
+  
+  - [ ] 14.4 Create infrastructure API endpoints
+    - GET /api/infrastructure/nearby for proximity queries
+    - GET /api/infrastructure/:type for filtered queries
+    - Add infrastructure layer to map visualization
+    - _Requirements: 15.4_
+  
+  - [ ]* 14.5 Write unit tests for data ingestion
+    - Test NCRB PDF parsing with sample data
+    - Test Census API integration
+    - Test OSM Overpass API queries
+    - Test H3 normalization of ingested data
+    - Test scheduled job execution
+    - _Requirements: 15.1, 15.2, 15.3, 15.4_
+  
+  - [ ]* 14.6 Write property test for data normalization
+    - **Property: Data Ingestion H3 Normalization**
+    - **Validates: Requirements 15.2**
+
+- [ ] 15. Proactive Safety & Hardware Integration
+  - [ ] 15.1 Implement SentinelService class
+    - Implement updateUserLocation method
+    - Implement checkSentinelConditions logic
+    - Implement triggerSafetyCheckIn method
+    - Implement escalateToEmergency method
+    - Add background monitoring loop (30-second intervals)
+    - _Requirements: 16.1, 16.2, 16.3, 16.7_
+  
+  - [ ] 15.2 Create sentinel database schema
+    - Create sentinel_events table in PostgreSQL
+    - Add indexes for user_id and h3_index
+    - Add response constraint validation
+    - _Requirements: 16.3, 16.6_
+  
+  - [ ] 15.3 Implement sentinel API endpoints
+    - POST /api/sentinel/check-in-response for user responses
+    - GET /api/sentinel/status for monitoring dashboard
+    - Add Socket.IO events for real-time check-ins
+    - _Requirements: 16.3, 16.4, 16.5, 16.6_
+  
+  - [ ]* 15.4 Write property test for sentinel conditions
+    - **Property 14: Sentinel Trigger Conditions**
+    - **Validates: Requirements 16.2**
+  
+  - [ ]* 15.5 Write unit tests for sentinel service
+    - Test stationary detection logic
+    - Test high-risk zone identification
+    - Test time threshold calculation
+    - Test auto-escalation after no response
+    - Test user response handling
+    - _Requirements: 16.2, 16.3, 16.4, 16.5, 16.6_
+  
+  - [ ] 15.6 Implement WearableService class
+    - Implement processBiometricData method
+    - Implement detectFall method with G-force calculation
+    - Implement detectStress method with heart rate thresholds
+    - Implement handleFallDetected with auto-escalation
+    - Implement handleStressDetected with subtle notifications
+    - _Requirements: None (new feature)_
+  
+  - [ ] 15.7 Create wearable database schema
+    - Create biometric_data table for sensor readings
+    - Create wearable_events table for fall/stress events
+    - Add indexes for user_id and timestamps
+    - Add heart rate constraint validation
+    - _Requirements: None (new feature)_
+  
+  - [ ] 15.8 Implement wearable API endpoints
+    - POST /api/wearable/biometric for data ingestion
+    - POST /api/wearable/fall-response for user responses
+    - GET /api/wearable/events for event history
+    - Add Socket.IO events for real-time alerts
+    - _Requirements: None (new feature)_
+  
+  - [ ]* 15.9 Write property test for fall detection
+    - **Property 15: Fall Detection Accuracy**
+    - **Validates: G-force threshold logic**
+  
+  - [ ]* 15.10 Write unit tests for wearable service
+    - Test fall detection with various accelerometer values
+    - Test stress detection with heart rate thresholds
+    - Test auto-escalation after no response to fall alert
+    - Test biometric data storage
+    - _Requirements: None (new feature)_
+  
+  - [ ] 15.11 Implement comparative routing
+    - Modify RoutingService.calculateComparativeRoutes method
+    - Calculate both fastest (safetyWeight=0) and safest (safetyWeight=1) routes
+    - Calculate safety differential metrics
+    - Return comparison data structure
+    - _Requirements: 17.1, 17.2, 17.3, 17.4_
+  
+  - [ ] 15.12 Create comparative routing API endpoint
+    - GET /api/safety/route/compare with origin and destination
+    - Return both routes with visual styling metadata
+    - Return comparison card data
+    - Add route recommendation logic based on time difference
+    - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6_
+  
+  - [ ] 15.13 Implement comparative routing UI
+    - Update RouteDisplay component to show two routes
+    - Add distinct visual styling (fastest=blue, safest=green)
+    - Create RouteComparison card component
+    - Display time difference, safety improvement, percentage safer
+    - Add route selection buttons
+    - _Requirements: 17.2, 17.3, 17.4, 17.7_
+  
+  - [ ]* 15.14 Write property test for route comparison
+    - **Property 16: Comparative Route Calculation**
+    - **Validates: Requirements 17.1**
+  
+  - [ ]* 15.15 Write unit tests for comparative routing
+    - Test fastest vs safest route calculation
+    - Test safety differential calculation
+    - Test route recommendation logic
+    - Test UI rendering of both routes
+    - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6_
+
+- [ ] 16. Checkpoint - Intelligence & Hardware Complete
+  - Ensure all tests pass, ask the user if questions arise.
+  - Verify data ingestion jobs are running
+  - Verify sentinel monitoring is active
+  - Verify wearable integration is functional
+  - Verify comparative routing displays correctly
 
 - [ ] 30. Final Checkpoint - System Complete
   - Ensure all tests pass, ask the user if questions arise.

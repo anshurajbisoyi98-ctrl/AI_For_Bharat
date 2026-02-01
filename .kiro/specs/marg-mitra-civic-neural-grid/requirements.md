@@ -232,6 +232,50 @@ This is not merely an application but a node in the India Stack ecosystem that d
 4. FOR ALL valid H3_Index values, serializing then deserializing SHALL produce an equivalent hexagon identifier (round-trip property)
 5. WHEN an invalid H3 index is encountered, THE MargMitra_System SHALL reject it with a clear error message
 
+### Requirement 15: Automated Data Ingestion
+
+**User Story:** As a platform administrator, I want official government data to be automatically ingested and normalized into H3 hexagons, so that safety scores are based on authoritative sources in addition to crowdsourced data.
+
+#### Acceptance Criteria
+
+1. WHEN NCRB PDF reports are published, THE DataIngestionService SHALL automatically download, parse, and extract district-level crime statistics
+2. WHEN crime data is extracted, THE DataIngestionService SHALL normalize crime rates to H3 hexagons at appropriate resolution (9 or 10)
+3. WHEN Census API data is available, THE DataIngestionService SHALL fetch population density and demographic data quarterly
+4. WHEN OpenStreetMap infrastructure data is queried, THE DataIngestionService SHALL ingest police stations, hospitals, and petrol pumps within specified bounding boxes
+5. THE DataIngestionService SHALL run scheduled ETL jobs: NCRB monthly, Census quarterly, OSM infrastructure weekly
+6. WHEN ingestion fails, THE DataIngestionService SHALL log errors and retry with exponential backoff up to 3 attempts
+7. WHEN new official data is ingested, THE MargMitra_System SHALL update affected Safety_Hexagon scores within 1 hour
+
+### Requirement 16: Proactive Sentinel Mode
+
+**User Story:** As Priya, I want the system to automatically check on me if I'm stationary in a high-risk area for too long, so that help can be dispatched even if I'm unable to trigger an SOS manually.
+
+#### Acceptance Criteria
+
+1. WHEN a user's location is updated, THE SentinelService SHALL calculate their current H3 hexagon and retrieve its safety score
+2. WHEN a user is stationary (speed < 1 km/h) in a high-risk hexagon (safety score < 40) for more than 5 minutes, THE SentinelService SHALL trigger a safety check-in notification
+3. WHEN a safety check-in is triggered, THE MargMitra_System SHALL send a push notification asking "Are you safe?" with response options: I_AM_SAFE, NEED_HELP, FALSE_ALARM
+4. WHEN a user does not respond to a safety check-in within 60 seconds, THE SentinelService SHALL automatically escalate to an emergency SOS broadcast
+5. WHEN a user responds with NEED_HELP, THE SentinelService SHALL immediately trigger an SOS broadcast
+6. WHEN a user responds with I_AM_SAFE or FALSE_ALARM, THE SentinelService SHALL log the response and cancel escalation
+7. THE SentinelService SHALL monitor user location states in a background process checking every 30 seconds
+8. WHEN a user moves to a different H3 hexagon, THE SentinelService SHALL reset the stationary timer
+
+### Requirement 17: Comparative Route Display
+
+**User Story:** As Priya, I want to see both the fastest route and the safest route side-by-side with a clear comparison of time difference and safety improvement, so that I can make an informed decision about which route to take.
+
+#### Acceptance Criteria
+
+1. WHEN a user requests navigation, THE RoutingService SHALL calculate TWO routes: fastest (safetyWeight=0) and safest (safetyWeight=1)
+2. WHEN both routes are calculated, THE MargMitra_System SHALL display them simultaneously on the map with distinct visual styling (fastest=blue, safest=green)
+3. WHEN displaying routes, THE MargMitra_System SHALL show a comparison card with: time difference in minutes, safety score improvement, and percentage safer
+4. THE comparison card SHALL display the safety differential in user-friendly format: "10 mins slower, but 40% safer"
+5. WHEN the time difference is less than 5 minutes, THE MargMitra_System SHALL recommend the safest route as the default
+6. WHEN the time difference exceeds 20 minutes, THE MargMitra_System SHALL display a warning: "Safest route significantly longer"
+7. THE MargMitra_System SHALL allow users to select either route and start navigation
+8. WHEN a route is selected, THE MargMitra_System SHALL provide turn-by-turn navigation with real-time safety score updates
+
 ## Conclusion
 
 MargMitra represents a paradigm shift in civic safety infrastructure, moving from centralized, English-only, always-online systems to a decentralized, multilingual, offline-first approach. By leveraging India Stack protocols and edge AI, the platform democratizes access to safety for the Next Billion Users who have been historically underserved by traditional safety solutions.

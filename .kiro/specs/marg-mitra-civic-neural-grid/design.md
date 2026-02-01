@@ -1339,7 +1339,670 @@ export class RoutingService {
     const result = await pgPool.query(query, [location[1], location[0]])
     return result.rows[0].id
   }
+
+  // Calculate BOTH fastest and safest routes for comparison
+  async calculateComparativeRoutes(
+    origin: [number, number],
+    destination: [number, number]
+  ): Promise<{
+    fastestRoute: {
+      coordinates: [number, number][]
+      distance: number
+      estimatedTime: number
+      averageSafetyScore: number
+    }
+    safestRoute: {
+      coordinates: [number, number][]
+      distance: number
+      estimatedTime: number
+      averageSafetyScore: number
+    }
+    safetyDifferential: {
+      timeDifferenceMinutes: number
+      safetyScoreImprovement: number
+      percentageSafer: number
+    }
+  }> {
+    // Calculate fastest route (safetyWeight = 0)
+    const fastestRoute = await this.calculateSafeRoute(origin, destination, 0.0)
+
+    // Calculate safest route (safetyWeight = 1)
+    const safestRoute = await this.calculateSafeRoute(origin, destination, 1.0)
+
+    // Calculate differential metrics
+    const timeDifferenceMinutes = (safestRoute.estimatedTime - fastestRoute.estimatedTime) / 60
+    const safetyScoreImprovement = safestRoute.averageSafetyScore - fastestRoute.averageSafetyScore
+    const percentageSafer = (safetyScoreImprovement / fastestRoute.averageSafetyScore) * 100
+
+    return {
+      fastestRoute: {
+        coordinates: fastestRoute.coordinates,
+        distance: fastestRoute.distance,
+        estimatedTime: fastestRoute.estimatedTime,
+        averageSafetyScore: fastestRoute.averageSafetyScore
+      },
+      safestRoute: {
+        coordinates: safestRoute.coordinates,
+        distance: safestRoute.distance,
+        estimatedTime: safestRoute.estimatedTime,
+        averageSafetyScore: safestRoute.averageSafetyScore
+      },
+      safetyDifferential: {
+        timeDifferenceMinutes,
+        safetyScoreImprovement,
+        percentageSafer
+      }
+    }
+  }
 }
+```
+
+### 4. Data Ingestion Engine (ETL Pipeline)
+
+**Purpose**: Automate ingestion of official government data sources to supplement crowdsourced safety intelligence with authoritative crime statistics and infrastructure data.
+
+**Data Sources**:
+- **NCRB (National Crime Records Bureau)**: PDF reports with district-level crime statistics
+- **Census API**: Population density, demographic data for H3 resolution assignment
+- **OpenStreetMap Overpass API**: Infrastructure points (police stations, hospitals, petrol pumps)
+
+```typescript
+// services/ingestion.service.ts
+import axios from 'axios'
+import { parse as parsePDF } from 'pdf-parse'
+import { H3Service } from './h3.service'
+import { pgPool } from '../app'
+
+export class DataIngestionService {
+  private h3Service: H3Service
+
+  constructor() {
+    this.h3Service = new H3Service()
+  }
+
+  // Scrape NCRB PDF reports and extract crime statistics
+  async ingestNCRBData(pdfUrl: string, year: number): Promise<void> {
+    try {
+      const response = await axios.get(pdfUrl, { responseType: 'arraybuffer' })
+      const pdfBuffer = Buffer.from(response.data)
+      const pdfData = await parsePDF(pdfBuffer)
+      const crimeData = this.parseNCRBText(pdfData.text)
+
+      for (const record of crimeData) {
+        const h3Index = this.h3Service.coordinatesToH3(
+          record.latitude,
+          record.longitude,
+          9
+        )
+        await this.updateCrimeScore(h3Index, record.crimeRate, year)
+      }
+
+      console.log(`Ingested ${crimeData.length} NCRB records for ${year}`)
+    } catch (error) {
+      console.error('NCRB ingestion error:', error)
+      throw new Error('Failed to ingest NCRB data')
+    }
+  }
+
+  // Fetch Census API data for population density
+  async ingestCensusData(state: string, district: string): Promise<void> {
+    try {
+      const response = await axios.get(
+        `https://api.census.gov.in/v1/data`,
+        {
+          params: { state, district, metrics: 'population_density,demographics' },
+          headers: { 'Authorization': `Bearer ${process.env.CENSUS_API_KEY}` }
+        }
+      )
+
+      const censusData = response.data.records
+      for (const record of censusData) {
+        const h3Index = this.h3Service.coordinatesToH3(
+          record.centroid.lat,
+          record.centroid.lng,
+          this.h3Service.getAppropriateResolution(record.population_density)
+        )
+        await this.updatePopulationData(h3Index, record)
+      }
+
+      console.log(`Ingested Census data for ${district}, ${state}`)
+    } catch (error) {
+      console.error('Census ingestion error:', error)
+      throw new Error('Failed to ingest Census data')
+    }
+  }
+
+  // Ingest infrastructure data from OpenStreetMap Overpass API
+  async ingestOSMInfrastructure(bbox: [number, number, number, number]): Promise<void> {
+    const query = `
+      [out:json];
+      (
+        node["amenity"="police"](${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]});
+        node["amenity"="hospital"](${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]});
+        node["amenity"="fuel"](${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]});
+      );
+      out body;
+    `
+
+    try {
+      const response = await axios.post(
+        'https://overpass-api.de/api/interpreter',
+        query,
+        { headers: { 'Content-Type': 'text/plain' } }
+      )
+
+      const elements = response.data.elements
+      for (const element of elements) {
+        await this.storeInfrastructure({
+          type: element.tags.amenity,
+          name: element.tags.name || 'Unnamed',
+          location: [element.lat, element.lon],
+          h3Index: this.h3Service.coordinatesToH3(element.lat, element.lon, 10)
+        })
+      }
+
+      console.log(`Ingested ${elements.length} infrastructure points from OSM`)
+    } catch (error) {
+      console.error('OSM ingestion error:', error)
+      throw new Error('Failed to ingest OSM infrastructure data')
+    }
+  }
+
+  private parseNCRBText(text: string): Array<{
+    district: string
+    latitude: number
+    longitude: number
+    crimeRate: number
+  }> {
+    const records: any[] = []
+    const lines = text.split('\n')
+    for (const line of lines) {
+      const match = line.match(/(\w+)\s+(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+)/)
+      if (match) {
+        records.push({
+          district: match[1],
+          latitude: parseFloat(match[2]),
+          longitude: parseFloat(match[3]),
+          crimeRate: parseInt(match[4])
+        })
+      }
+    }
+    return records
+  }
+
+  private async updateCrimeScore(h3Index: string, crimeRate: number, year: number): Promise<void> {
+    const crimeScore = Math.max(0, 100 - (crimeRate / 10))
+    await pgPool.query(
+      `INSERT INTO safety_hexagons (h3_index, crime_score, last_updated)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (h3_index) 
+       DO UPDATE SET crime_score = $2, last_updated = NOW()`,
+      [h3Index, crimeScore]
+    )
+  }
+
+  private async updatePopulationData(h3Index: string, censusRecord: any): Promise<void> {
+    await pgPool.query(
+      `INSERT INTO safety_hexagons (h3_index, crowd_score, resolution)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (h3_index)
+       DO UPDATE SET crowd_score = $2`,
+      [h3Index, Math.min(100, censusRecord.population_density / 100), censusRecord.population_density > 5000 ? 10 : 9]
+    )
+  }
+
+  private async storeInfrastructure(data: {
+    type: string
+    name: string
+    location: [number, number]
+    h3Index: string
+  }): Promise<void> {
+    await pgPool.query(
+      `INSERT INTO infrastructure (type, name, location, h3_index, created_at)
+       VALUES ($1, $2, ST_SetSRID(ST_MakePoint($3, $4), 4326), $5, NOW())
+       ON CONFLICT DO NOTHING`,
+      [data.type, data.name, data.location[1], data.location[0], data.h3Index]
+    )
+  }
+}
+```
+
+**PostgreSQL Table for Infrastructure**:
+
+```sql
+-- Infrastructure points (police stations, hospitals, petrol pumps)
+CREATE TABLE infrastructure (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  type VARCHAR(20) NOT NULL CHECK (type IN ('police', 'hospital', 'fuel')),
+  name VARCHAR(200) NOT NULL,
+  location GEOMETRY(POINT, 4326) NOT NULL,
+  h3_index VARCHAR(15) NOT NULL,
+  address TEXT,
+  phone VARCHAR(20),
+  operating_hours VARCHAR(100),
+  verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_infrastructure_location ON infrastructure USING GIST(location);
+CREATE INDEX idx_infrastructure_type ON infrastructure(type);
+CREATE INDEX idx_infrastructure_h3 ON infrastructure(h3_index);
+```
+
+**Scheduled ETL Jobs**:
+
+```typescript
+// jobs/etl.jobs.ts
+import cron from 'node-cron'
+import { DataIngestionService } from '../services/ingestion.service'
+
+const ingestionService = new DataIngestionService()
+
+// Run NCRB ingestion monthly
+cron.schedule('0 0 1 * *', async () => {
+  console.log('Starting monthly NCRB data ingestion...')
+  const currentYear = new Date().getFullYear()
+  await ingestionService.ingestNCRBData(
+    `https://ncrb.gov.in/reports/${currentYear}/crime-data.pdf`,
+    currentYear
+  )
+})
+
+// Run Census ingestion quarterly
+cron.schedule('0 0 1 */3 *', async () => {
+  console.log('Starting quarterly Census data ingestion...')
+  const states = ['Delhi', 'Maharashtra', 'Karnataka', 'Tamil Nadu']
+  for (const state of states) {
+    await ingestionService.ingestCensusData(state, 'all')
+  }
+})
+
+// Run OSM infrastructure ingestion weekly
+cron.schedule('0 0 * * 0', async () => {
+  console.log('Starting weekly OSM infrastructure ingestion...')
+  const majorCities = [
+    [28.4, 77.0, 28.9, 77.4], // Delhi
+    [18.9, 72.8, 19.3, 73.0], // Mumbai
+    [12.8, 77.5, 13.1, 77.7]  // Bangalore
+  ]
+  for (const bbox of majorCities) {
+    await ingestionService.ingestOSMInfrastructure(bbox as [number, number, number, number])
+  }
+})
+```
+
+### 5. Proactive Sentinel Service (Background Intelligence)
+
+**Purpose**: Monitor user location and safety context to proactively trigger check-ins when users are stationary in high-risk areas.
+
+**Logic**: `IF (User_Location == High_Risk_Hexagon) AND (Speed < 1km/h) AND (Time > 5 mins) THEN Trigger_Check_In`
+
+```typescript
+// services/sentinel.service.ts
+import { H3Service } from './h3.service'
+import { SafetyService } from './safety.service'
+import { pgPool } from '../app'
+import { io } from '../app'
+
+interface UserLocationState {
+  userId: string
+  currentH3Index: string
+  lastMovementTime: Date
+  speed: number
+  safetyScore: number
+}
+
+export class SentinelService {
+  private h3Service: H3Service
+  private safetyService: SafetyService
+  private userStates: Map<string, UserLocationState>
+  private readonly STATIONARY_THRESHOLD_KMH = 1.0
+  private readonly TIME_THRESHOLD_MS = 5 * 60 * 1000
+  private readonly HIGH_RISK_THRESHOLD = 40
+
+  constructor() {
+    this.h3Service = new H3Service()
+    this.safetyService = new SafetyService()
+    this.userStates = new Map()
+    this.startMonitoring()
+  }
+
+  async updateUserLocation(
+    userId: string,
+    location: [number, number],
+    speed: number
+  ): Promise<void> {
+    const h3Index = this.h3Service.coordinatesToH3(location[0], location[1], 9)
+    const safetyScore = await this.safetyService.getSafetyScore(h3Index)
+    const previousState = this.userStates.get(userId)
+    const now = new Date()
+    const hasMoved = previousState?.currentH3Index !== h3Index
+
+    const newState: UserLocationState = {
+      userId,
+      currentH3Index: h3Index,
+      lastMovementTime: hasMoved ? now : (previousState?.lastMovementTime || now),
+      speed,
+      safetyScore
+    }
+
+    this.userStates.set(userId, newState)
+    await this.checkSentinelConditions(newState)
+  }
+
+  private async checkSentinelConditions(state: UserLocationState): Promise<void> {
+    const isStationary = state.speed < this.STATIONARY_THRESHOLD_KMH
+    const isHighRisk = state.safetyScore < this.HIGH_RISK_THRESHOLD
+    const timeStationary = Date.now() - state.lastMovementTime.getTime()
+    const exceededTimeThreshold = timeStationary > this.TIME_THRESHOLD_MS
+
+    if (isStationary && isHighRisk && exceededTimeThreshold) {
+      await this.triggerSafetyCheckIn(state)
+    }
+  }
+
+  private async triggerSafetyCheckIn(state: UserLocationState): Promise<void> {
+    console.log(`Sentinel triggered for user ${state.userId} in high-risk zone`)
+
+    await pgPool.query(
+      `INSERT INTO sentinel_events (user_id, h3_index, safety_score, triggered_at)
+       VALUES ($1, $2, $3, NOW())`,
+      [state.userId, state.currentH3Index, state.safetyScore]
+    )
+
+    io.to(state.userId).emit('sentinel:check-in', {
+      message: 'You have been stationary in a high-risk area for 5 minutes. Are you safe?',
+      safetyScore: state.safetyScore,
+      location: state.currentH3Index,
+      actions: ['I_AM_SAFE', 'NEED_HELP', 'FALSE_ALARM']
+    })
+
+    setTimeout(async () => {
+      const response = await this.checkUserResponse(state.userId)
+      if (!response) {
+        await this.escalateToEmergency(state)
+      }
+    }, 60000)
+  }
+
+  private async checkUserResponse(userId: string): Promise<boolean> {
+    const result = await pgPool.query(
+      `SELECT response FROM sentinel_events 
+       WHERE user_id = $1 
+       ORDER BY triggered_at DESC 
+       LIMIT 1`,
+      [userId]
+    )
+    return result.rows[0]?.response !== null
+  }
+
+  private async escalateToEmergency(state: UserLocationState): Promise<void> {
+    console.log(`Escalating to emergency for user ${state.userId}`)
+
+    await pgPool.query(
+      `INSERT INTO sos_broadcasts (
+        user_id, location, h3_index, emergency_type, severity, 
+        description, created_at
+       )
+       VALUES (
+         $1, 
+         ST_SetSRID(ST_MakePoint(0, 0), 4326), 
+         $2, 
+         'SAFETY_THREAT', 
+         'HIGH',
+         'Automatic escalation: User unresponsive in high-risk zone',
+         NOW()
+       )`,
+      [state.userId, state.currentH3Index]
+    )
+
+    io.to(state.userId).emit('sentinel:escalated', {
+      message: 'Emergency services have been notified',
+      sosId: 'auto-generated'
+    })
+  }
+
+  private startMonitoring(): void {
+    setInterval(() => {
+      for (const [userId, state] of this.userStates.entries()) {
+        this.checkSentinelConditions(state)
+      }
+    }, 30000)
+  }
+
+  async handleCheckInResponse(
+    userId: string,
+    response: 'I_AM_SAFE' | 'NEED_HELP' | 'FALSE_ALARM'
+  ): Promise<void> {
+    await pgPool.query(
+      `UPDATE sentinel_events 
+       SET response = $1, responded_at = NOW()
+       WHERE user_id = $2 
+       AND triggered_at = (
+         SELECT MAX(triggered_at) FROM sentinel_events WHERE user_id = $2
+       )`,
+      [response, userId]
+    )
+
+    if (response === 'NEED_HELP') {
+      const state = this.userStates.get(userId)
+      if (state) {
+        await this.escalateToEmergency(state)
+      }
+    }
+  }
+}
+```
+
+**PostgreSQL Table for Sentinel Events**:
+
+```sql
+CREATE TABLE sentinel_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id VARCHAR(24) NOT NULL,
+  h3_index VARCHAR(15) NOT NULL,
+  safety_score NUMERIC(5,2) NOT NULL,
+  triggered_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  response VARCHAR(20),
+  responded_at TIMESTAMP,
+  escalated BOOLEAN DEFAULT FALSE,
+  speed_kmh NUMERIC(5,2),
+  time_stationary_seconds INTEGER,
+  CONSTRAINT valid_response CHECK (
+    response IN ('I_AM_SAFE', 'NEED_HELP', 'FALSE_ALARM')
+  )
+);
+
+CREATE INDEX idx_sentinel_user ON sentinel_events(user_id, triggered_at DESC);
+CREATE INDEX idx_sentinel_h3 ON sentinel_events(h3_index);
+```
+
+### 6. Wearable Bridge (Hardware Integration)
+
+**Purpose**: Integrate smartwatch biometric data (heart rate, accelerometer) for fall detection and physiological stress monitoring.
+
+**Supported Devices**: Apple Watch, Wear OS, Fitbit
+
+```typescript
+// services/wearable.service.ts
+import { io } from '../app'
+import { pgPool } from '../app'
+
+interface BiometricData {
+  userId: string
+  heartRate: number
+  accelerometerX: number
+  accelerometerY: number
+  accelerometerZ: number
+  timestamp: Date
+}
+
+interface FallDetectionResult {
+  isFall: boolean
+  confidence: number
+  impactMagnitude: number
+}
+
+export class WearableService {
+  private readonly FALL_THRESHOLD_G = 2.5
+  private readonly ELEVATED_HR_THRESHOLD = 120
+  private readonly STRESS_HR_THRESHOLD = 140
+
+  async processBiometricData(data: BiometricData): Promise<void> {
+    await this.storeBiometricData(data)
+
+    const fallResult = this.detectFall(data)
+    if (fallResult.isFall) {
+      await this.handleFallDetected(data.userId, fallResult)
+    }
+
+    const isStressed = this.detectStress(data)
+    if (isStressed) {
+      await this.handleStressDetected(data.userId, data.heartRate)
+    }
+  }
+
+  private detectFall(data: BiometricData): FallDetectionResult {
+    const magnitude = Math.sqrt(
+      data.accelerometerX ** 2 +
+      data.accelerometerY ** 2 +
+      data.accelerometerZ ** 2
+    )
+    const gForce = magnitude / 9.81
+    const isFall = gForce > this.FALL_THRESHOLD_G
+    const confidence = Math.min(1.0, gForce / (this.FALL_THRESHOLD_G * 2))
+
+    return { isFall, confidence, impactMagnitude: gForce }
+  }
+
+  private detectStress(data: BiometricData): boolean {
+    return data.heartRate > this.STRESS_HR_THRESHOLD
+  }
+
+  private async handleFallDetected(
+    userId: string,
+    fallResult: FallDetectionResult
+  ): Promise<void> {
+    console.log(`Fall detected for user ${userId} (confidence: ${fallResult.confidence})`)
+
+    await pgPool.query(
+      `INSERT INTO wearable_events (
+        user_id, event_type, confidence, metadata, detected_at
+       )
+       VALUES ($1, 'FALL', $2, $3, NOW())`,
+      [userId, fallResult.confidence, JSON.stringify({ impactMagnitude: fallResult.impactMagnitude })]
+    )
+
+    io.to(userId).emit('wearable:fall-detected', {
+      message: 'Fall detected. Are you okay?',
+      confidence: fallResult.confidence,
+      actions: ['I_AM_OK', 'NEED_HELP'],
+      autoEscalateIn: 30
+    })
+
+    setTimeout(async () => {
+      const response = await this.checkFallResponse(userId)
+      if (!response) {
+        await this.escalateFallToSOS(userId)
+      }
+    }, 30000)
+  }
+
+  private async handleStressDetected(userId: string, heartRate: number): Promise<void> {
+    console.log(`Elevated heart rate detected for user ${userId}: ${heartRate} BPM`)
+
+    await pgPool.query(
+      `INSERT INTO wearable_events (
+        user_id, event_type, metadata, detected_at
+       )
+       VALUES ($1, 'STRESS', $2, NOW())`,
+      [userId, JSON.stringify({ heartRate })]
+    )
+
+    io.to(userId).emit('wearable:stress-detected', {
+      message: 'Elevated heart rate detected. Everything okay?',
+      heartRate,
+      suggestions: ['BREATHING_EXERCISE', 'CONTACT_FRIEND', 'IGNORE']
+    })
+  }
+
+  private async checkFallResponse(userId: string): Promise<boolean> {
+    const result = await pgPool.query(
+      `SELECT response FROM wearable_events 
+       WHERE user_id = $1 AND event_type = 'FALL'
+       ORDER BY detected_at DESC 
+       LIMIT 1`,
+      [userId]
+    )
+    return result.rows[0]?.response !== null
+  }
+
+  private async escalateFallToSOS(userId: string): Promise<void> {
+    console.log(`Escalating fall event to SOS for user ${userId}`)
+
+    const locationResult = await pgPool.query(
+      `SELECT location, h3_index FROM user_locations 
+       WHERE user_id = $1 
+       ORDER BY updated_at DESC 
+       LIMIT 1`,
+      [userId]
+    )
+
+    if (locationResult.rows.length > 0) {
+      await pgPool.query(
+        `INSERT INTO sos_broadcasts (
+          user_id, location, h3_index, emergency_type, severity, 
+          description, created_at
+         )
+         VALUES ($1, $2, $3, 'MEDICAL', 'CRITICAL', 
+                 'Automatic: Fall detected, user unresponsive', NOW())`,
+        [userId, locationResult.rows[0].location, locationResult.rows[0].h3_index]
+      )
+    }
+  }
+
+  private async storeBiometricData(data: BiometricData): Promise<void> {
+    await pgPool.query(
+      `INSERT INTO biometric_data (
+        user_id, heart_rate, accelerometer_x, accelerometer_y, 
+        accelerometer_z, recorded_at
+       )
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [data.userId, data.heartRate, data.accelerometerX, data.accelerometerY, data.accelerometerZ, data.timestamp]
+    )
+  }
+}
+```
+
+**PostgreSQL Tables for Wearable Data**:
+
+```sql
+CREATE TABLE biometric_data (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id VARCHAR(24) NOT NULL,
+  heart_rate INTEGER NOT NULL,
+  accelerometer_x NUMERIC(8,4),
+  accelerometer_y NUMERIC(8,4),
+  accelerometer_z NUMERIC(8,4),
+  recorded_at TIMESTAMP NOT NULL,
+  CONSTRAINT valid_heart_rate CHECK (heart_rate BETWEEN 30 AND 250)
+);
+
+CREATE INDEX idx_biometric_user ON biometric_data(user_id, recorded_at DESC);
+
+CREATE TABLE wearable_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id VARCHAR(24) NOT NULL,
+  event_type VARCHAR(20) NOT NULL CHECK (event_type IN ('FALL', 'STRESS')),
+  confidence NUMERIC(3,2),
+  metadata JSONB,
+  response VARCHAR(20),
+  detected_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  responded_at TIMESTAMP
+);
+
+CREATE INDEX idx_wearable_events_user ON wearable_events(user_id, detected_at DESC);
 ```
 
 ## Correctness Properties
