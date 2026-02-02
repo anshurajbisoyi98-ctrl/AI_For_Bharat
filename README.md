@@ -11,31 +11,31 @@
 
 ---
 
-## 🎯 **The Problem**
+##  **The Problem**
 
 70% of India doesn't speak English. Current safety systems (911/100) require literacy, constant connectivity, and urban infrastructure. **Women, daily wage earners, and rural populations are left behind.**
 
-## 💡 **Our Solution**
+##  **Our Solution**
 
 MargMitra democratizes safety as a public good using **AI + India Stack protocols**. A construction worker speaking Bhojpuri can trigger an SOS via voice, even offline, and get help from a decentralized network of responders.
 
 ---
 
-## 🚀 **3 Killer Features**
+##  **3 Killer Features**
 
-### 1️⃣ **The Brain: Automated Intelligence Pipeline**
+### 1️ **The Brain: Automated Intelligence Pipeline**
 - **NCRB Crime Data Scraper**: Ingests official government PDFs, normalizes district-level crime stats to H3 hexagons
 - **Census API Integration**: Fetches population density for intelligent resolution assignment (urban vs rural)
 - **OSM Infrastructure Seeder**: Auto-discovers police stations, hospitals, 24/7 petrol pumps via Overpass API
 - **Impact**: Safety scores based on authoritative data, not just crowdsourcing
 
-### 2️⃣ **The Guardian: Proactive Sentinel Mode**
+### 2️ **The Guardian: Proactive Sentinel Mode**
 - **Background Monitoring**: Detects when users are stationary in high-risk zones for >5 minutes
 - **Smart Escalation**: Local notification → Audio recording → Auto-SOS if no response
 - **Privacy-First**: All processing happens on-device; coordinates only transmitted if check-in fails
 - **Impact**: Prevents emergencies before they escalate
 
-### 3️⃣ **The Body: Wearable Biometric Integration**
+### 3️ **The Body: Wearable Biometric Integration**
 - **Fall Detection**: Accelerometer monitoring (>2.5G impact + 10s zero-movement = auto-SOS)
 - **Stress Detection**: Heart rate thresholds (>140 BPM = subtle check-in prompt)
 - **Web Bluetooth API**: Works with Apple Watch, Wear OS, Fitbit
@@ -43,7 +43,7 @@ MargMitra democratizes safety as a public good using **AI + India Stack protocol
 
 ---
 
-## 🏗️ **Architecture**
+## **Architecture**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -79,7 +79,7 @@ MargMitra democratizes safety as a public good using **AI + India Stack protocol
 
 ---
 
-## 📊 **Impact Metrics**
+## **Impact Metrics**
 
 - **Safe Kilometers Traveled**: Distance covered using safe routes
 - **Response Time Reduction**: 40% faster than traditional 911/100 systems
@@ -88,7 +88,7 @@ MargMitra democratizes safety as a public good using **AI + India Stack protocol
 
 ---
 
-## 🛠️ **Tech Stack**
+##  **Tech Stack**
 
 | Layer | Technology |
 |-------|-----------|
@@ -101,20 +101,20 @@ MargMitra democratizes safety as a public good using **AI + India Stack protocol
 
 ---
 
-## 🎯 **Alignment with Problem Statement**
+##  **Alignment with Problem Statement**
 
-✅ **AI-powered solution**: Bhashini ASR/TTS, IndicBERT NER, YAMNet audio classification  
-✅ **Improves access to resources**: Decentralized emergency response via Beckn Protocol  
-✅ **Civic information assistant**: Voice-first safety queries and navigation  
-✅ **Local-language**: 10+ Indian languages (Hindi, Tamil, Telugu, Bengali, etc.)  
-✅ **Voice-first**: Primary interaction mode for illiterate users  
-✅ **Low-bandwidth**: Offline-first PWA, works on 2G networks  
-✅ **Inclusion & accessibility**: Designed for underserved populations (rural, illiterate, women)  
-✅ **Real-world impact**: Measurable safety outcomes, not vanity metrics  
+ **AI-powered solution**: Bhashini ASR/TTS, IndicBERT NER, YAMNet audio classification  
+ **Improves access to resources**: Decentralized emergency response via Beckn Protocol  
+ **Civic information assistant**: Voice-first safety queries and navigation  
+ **Local-language**: 10+ Indian languages (Hindi, Tamil, Telugu, Bengali, etc.)  
+ **Voice-first**: Primary interaction mode for illiterate users  
+ **Low-bandwidth**: Offline-first PWA, works on 2G networks  
+ **Inclusion & accessibility**: Designed for underserved populations (rural, illiterate, women)  
+ **Real-world impact**: Measurable safety outcomes, not vanity metrics  
 
 ---
 
-## 💰 **Business Model**
+## **Business Model**
 
 ### Revenue Streams
 1. **Freemium SaaS**: Free basic safety, ₹50/month for premium features (advanced routing, priority SOS)
@@ -134,7 +134,7 @@ MargMitra democratizes safety as a public good using **AI + India Stack protocol
 
 ---
 
-## 📁 **Project Structure**
+## **Project Structure**
 
 ```
 .kiro/specs/marg-mitra-civic-neural-grid/
@@ -146,7 +146,7 @@ MargMitra democratizes safety as a public good using **AI + India Stack protocol
 
 ---
 
-## 🚀 **Quick Start**
+## **Quick Start**
 
 ```bash
 # Clone repository
@@ -170,7 +170,7 @@ npm test
 
 ---
 
-## 📄 **Documentation**
+## **Documentation**
 
 - [Requirements Document](/.kiro/specs/marg-mitra-civic-neural-grid/requirements.md) - User stories, acceptance criteria
 - [Design Document](/.kiro/specs/marg-mitra-civic-neural-grid/design.md) - Architecture, algorithms, data models
