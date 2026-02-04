@@ -5,145 +5,145 @@
 
 This implementation plan breaks down the MargMitra civic safety platform into discrete, manageable tasks. The platform uses MERN stack (MongoDB, Express, React, Node.js) integrated with India Stack protocols (Bhashini, Beckn, H3). Tasks are organized to build incrementally, with testing integrated throughout.
 
-## 🎯 Priority System
+## Priority System
 
 Tasks are marked with priority levels for strategic execution:
 
-- **🔴 P0 (Demo Critical)**: Must implement for hackathon demo - core value proposition
-- **🟡 P1 (Demo Enhancement)**: Nice to have if time permits - improves demo quality
-- **🟢 P2 (Post-Demo)**: Build after hackathon - production readiness
+=> P0 (Demo Critical)**: Must implement for hackathon demo - core value proposition
+=> P1 (Demo Enhancement)**: Nice to have if time permits - improves demo quality
+=> P2 (Post-Demo)**: Build after hackathon - production readiness
 
 **Demo MVP Focus**: Implement all P0 tasks first (8-10 tasks, 2-4 weeks). This creates a working demo that showcases the 3 killer features: Voice SOS, Safety Map, Offline Mode.
 
 ## Tasks
 
-- [ ] 1. Project Setup and Infrastructure **🔴 P0**
+ 1. Project Setup and Infrastructure ** P0**
   - Initialize monorepo with client (React) and server (Node.js) directories
   - Configure TypeScript for both frontend and backend
   - Set up Docker Compose with MongoDB, PostgreSQL/PostGIS, and Redis
   - Configure environment variables and secrets management
   - Set up ESLint, Prettier, and Git hooks
-  - _Requirements: All (foundational)_
+  - _Requirements: All (foundational)
 
-- [ ] 2. Database Schema and Models **🔴 P0**
+ 2. Database Schema and Models ** P0**
   - [ ] 2.1 Create MongoDB schemas using Mongoose
     - Implement User model with authentication fields
     - Implement Observation model with geospatial indexing
     - Implement Session model for JWT token management
-    - _Requirements: 12.1, 12.3_
+    - _Requirements: 12.1, 12.3
   
-  - [ ] 2.2 Create PostgreSQL tables with PostGIS
+  2.2 Create PostgreSQL tables with PostGIS
     - Create safety_hexagons table with H3 index and geometry
     - Create sos_broadcasts table with Beckn tracking fields
     - Create responders table with coverage area geometry
     - Create reputation_scores table for EigenTrust values
     - Add spatial indexes (GIST) for geometry columns
-    - _Requirements: 4.1, 4.2, 4.3, 6.1, 8.1_
+    - _Requirements: 4.1, 4.2, 4.3, 6.1, 8.1
   
-  - [ ]* 2.3 Write property test for H3 serialization **🟢 P2**
+ 2.3 Write property test for H3 serialization ** P2**
     - **Property 13: H3 Round-Trip Consistency**
     - **Validates: Requirements 14.4**
   
-  - [ ] 2.4 Create database connection utilities
+  2.4 Create database connection utilities
     - Implement MongoDB connection with Mongoose
     - Implement PostgreSQL connection pool with pg library
     - Implement Redis client for caching
     - Add connection health checks and retry logic
-    - _Requirements: 10.3_
+    - _Requirements: 10.3
 
-- [ ] 3. Authentication and Authorization **🟡 P1**
-- [ ] 3. Authentication and Authorization **🟡 P1**
+
+ 3. Authentication and Authorization **P1**
   - [ ] 3.1 Implement JWT-based authentication
     - Create user registration endpoint with bcrypt password hashing
     - Create login endpoint with JWT token generation
     - Create token refresh endpoint
     - Implement auth middleware for protected routes
-    - _Requirements: None (infrastructure)_
+    - _Requirements: None (infrastructure)
   
-  - [ ]* 3.2 Write unit tests for authentication **🟢 P2**
+  - [ ]* 3.2 Write unit tests for authentication **P2**
     - Test registration with valid/invalid inputs
     - Test login with correct/incorrect credentials
     - Test JWT token validation and expiration
     - Test auth middleware authorization logic
-    - _Requirements: None (infrastructure)_
+    - _Requirements: None (infrastructure)
 
-- [ ] 4. H3 Spatial Indexing Service **🔴 P0**
+- [ ] 4. H3 Spatial Indexing Service ** P0**
   - [ ] 4.1 Implement H3Service class
     - Implement coordinatesToH3 method for converting lat/lng to H3 index
     - Implement getHexagonBoundary for map rendering
     - Implement getNeighbors for k-ring queries
     - Implement getAppropriateResolution based on population density
-    - _Requirements: 4.1, 4.2_
+    - _Requirements: 4.1, 4.2
   
-  - [ ]* 4.2 Write property test for H3 resolution assignment **🟢 P2**
+  - [ ]* 4.2 Write property test for H3 resolution assignment ** P2**
     - **Property 7: H3 Resolution Assignment**
     - **Validates: Requirements 4.1, 4.2**
   
-  - [ ]* 4.3 Write property test for H3 serialization format **🟢 P2**
+  - [ ]* 4.3 Write property test for H3 serialization format ** P2**
     - **Property 13: H3 Round-Trip Consistency**
     - **Validates: Requirements 14.1, 14.4**
 
-- [ ] 5. Bhashini Voice Integration **🔴 P0**
-- [ ] 5. Bhashini Voice Integration **🔴 P0**
+- [ ] 5. Bhashini Voice Integration ** P0**
+- [ ] 5. Bhashini Voice Integration **P0**
   - [ ] 5.1 Implement BhashiniService class
     - Implement transcribeAudio method for ASR
     - Implement synthesizeSpeech method for TTS
     - Implement createStreamingConnection for WebSocket
     - Add error handling and fallback mechanisms
-    - _Requirements: 1.1, 1.4, 1.5_
+    - _Requirements: 1.1, 1.4, 1.5
   
   - [ ] 5.2 Create voice processing API endpoints
     - POST /api/voice/transcribe for audio transcription
     - POST /api/voice/synthesize for text-to-speech
     - Add audio format validation and conversion
-    - _Requirements: 1.1, 1.4_
+    - _Requirements: 1.1, 1.4
   
-  - [ ]* 5.3 Write property test for language consistency **🟢 P2**
+  - [ ]* 5.3 Write property test for language consistency ** P2**
     - **Property 2: Language Consistency in Responses**
     - **Validates: Requirements 1.4**
   
-  - [ ]* 5.4 Write unit tests for Bhashini integration **🟢 P2**
+  - [ ]* 5.4 Write unit tests for Bhashini integration ** P2**
     - Test transcription with sample audio files
     - Test TTS synthesis for multiple languages
     - Test WebSocket connection handling
     - Test fallback to Web Speech API when offline
-    - _Requirements: 1.3, 1.4_
+    - _Requirements: 1.3, 1.4
 
-- [ ] 6. IndicBERT NER Service **🔴 P0**
-- [ ] 6. IndicBERT NER Service **🔴 P0**
+
+- [ ] 6. IndicBERT NER Service ** P0**
   - [ ] 6.1 Implement IndicBERTService class
     - Implement extractEntities method for NER
     - Implement classifyIntent method for intent detection
     - Implement resolveLocation method for geocoding
     - Add confidence threshold handling
-    - _Requirements: 1.2, 9.1, 9.2_
+    - _Requirements: 1.2, 9.1, 9.2
   
-  - [ ]* 6.2 Write property test for NER accuracy **🟢 P2**
+  - [ ]* 6.2 Write property test for NER accuracy **P2**
     - **Property 1: NER Accuracy Threshold**
     - **Validates: Requirements 1.2**
   
-  - [ ]* 6.3 Write property test for entity extraction **🟢 P2**
+  - [ ]* 6.3 Write property test for entity extraction **P2**
     - **Property: Location Entity Extraction**
     - **Validates: Requirements 9.1**
   
-  - [ ]* 6.4 Write unit tests for intent classification **🟢 P2**
+  - [ ]* 6.4 Write unit tests for intent classification ** P2**
     - Test SOS intent detection with keywords
     - Test navigation intent detection
     - Test safety query intent detection
     - Test ambiguous input handling
-    - _Requirements: 9.3, 9.5_
+    - _Requirements: 9.3, 9.5
 
-- [ ] 7. Checkpoint - Core Services Functional **🔴 P0**
+- [ ] 7. Checkpoint - Core Services Functional ** P0**
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Safety Intelligence Module **🔴 P0**
-- [ ] 8. Safety Intelligence Module **🔴 P0**
+- [ ] 8. Safety Intelligence Module ** P0**
+- [ ] 8. Safety Intelligence Module ** P0**
   - [ ] 8.1 Implement SafetyService class
     - Implement getSafetyScore method querying PostgreSQL
     - Implement updateSafetyScore method with factor aggregation
     - Implement getSafetyHexagonsInRadius for map queries
     - Add caching layer using Redis
-    - _Requirements: 4.3, 4.4, 4.5_
+    - _Requirements: 4.3, 4.4, 4.5
   
   - [ ] 8.2 Create safety data API endpoints
     - GET /api/safety/hexagons for fetching safety data
@@ -151,23 +151,23 @@ Tasks are marked with priority levels for strategic execution:
     - POST /api/safety/observations for crowdsourced reports
     - _Requirements: 4.3, 4.4_
   
-  - [ ]* 8.3 Write property test for safety score aggregation **🟢 P2**
+  - [ ]* 8.3 Write property test for safety score aggregation ** P2**
     - **Property 8: Safety Score Aggregation**
     - **Validates: Requirements 4.3**
   
-  - [ ]* 8.4 Write unit tests for safety calculations **🟢 P2**
+  - [ ]* 8.4 Write unit tests for safety calculations ** P2**
     - Test safety score calculation with known factor values
     - Test hexagon color mapping for visualization
     - Test caching behavior for repeated queries
-    - _Requirements: 4.4, 11.5_
+    - _Requirements: 4.4, 11.5
 
-- [ ] 9. AHP Route Safety Weighting **🟢 P2**
+- [ ] 9. AHP Route Safety Weighting ** P2**
   - [ ] 9.1 Implement AHPService class
     - Implement calculateWeights method with matrix normalization
     - Implement consistency ratio calculation
     - Implement getDefaultWeights fallback
     - Add matrix validation logic
-    - _Requirements: 5.1, 5.2_
+    - _Requirements: 5.1, 5.2
   
   - [ ]* 9.2 Write property test for AHP consistency
     - **Property 9: AHP Consistency Validation**
@@ -177,7 +177,7 @@ Tasks are marked with priority levels for strategic execution:
     - Test weight calculation with valid matrix
     - Test rejection of inconsistent matrix (CR > 0.1)
     - Test default weights fallback
-    - _Requirements: 5.2_
+    - _Requirements: 5.2
 
 - [ ] 10. EigenTrust Reputation System
   - [ ] 10.1 Implement EigenTrustService class
@@ -185,7 +185,7 @@ Tasks are marked with priority levels for strategic execution:
     - Implement buildTrustMatrix from user verifications
     - Add convergence detection logic
     - Implement Sybil attack detection heuristics
-    - _Requirements: 6.1, 6.2, 6.3, 6.4_
+    - _Requirements: 6.1, 6.2, 6.3, 6.4
   
   - [ ]* 10.2 Write property test for EigenTrust convergence
     - **Property 11: EigenTrust Convergence**
@@ -200,7 +200,7 @@ Tasks are marked with priority levels for strategic execution:
     - Test reputation score updates
     - Test low reputation flagging (< 0.3)
     - Test Sybil attack detection
-    - _Requirements: 6.3, 6.5_
+    - _Requirements: 6.3, 6.5
 
 - [ ] 11. Safe Route Calculation
   - [ ] 11.1 Implement RoutingService class
@@ -208,13 +208,13 @@ Tasks are marked with priority levels for strategic execution:
     - Implement findNearestNode for road network snapping
     - Add safety-speed tradeoff parameter handling
     - Calculate route metrics (distance, time, safety scores)
-    - _Requirements: 5.3, 5.4, 5.5_
+    - _Requirements: 5.3, 5.4, 5.5
   
   - [ ] 11.2 Create routing API endpoint
     - GET /api/safety/route with origin, destination, preferences
     - Return route coordinates, metrics, and safety scores
     - Add route caching for common queries
-    - _Requirements: 5.3, 5.4_
+    - _Requirements: 5.3, 5.4
   
   - [ ]* 11.3 Write property test for route safety prioritization
     - **Property: Safest Route Prioritization**
@@ -224,18 +224,18 @@ Tasks are marked with priority levels for strategic execution:
     - Test route calculation with various safety weights
     - Test route metrics completeness
     - Test nearest node finding
-    - _Requirements: 5.4, 5.5_
+    - _Requirements: 5.4, 5.5
 
 - [ ] 12. Checkpoint - Intelligence Layer Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Beckn Protocol Integration **🔴 P0**
+- [ ] 13. Beckn Protocol Integration **P0**
   - [ ] 13.1 Implement BecknService class
     - Implement broadcastSOS method creating search intent
     - Implement getResponderResponses for on_search collection
     - Implement confirmResponder for workflow completion
     - Add Beckn message serialization and parsing
-    - _Requirements: 3.1, 3.2, 3.3, 3.5, 13.1, 13.2_
+    - _Requirements: 3.1, 3.2, 3.3, 3.5, 13.1, 13.2
   
   - [ ]* 13.2 Write property test for Beckn message generation
     - **Property 5: Beckn Message Generation**
@@ -250,21 +250,21 @@ Tasks are marked with priority levels for strategic execution:
     - Test responder response parsing
     - Test workflow state transitions
     - Test error handling for malformed messages
-    - _Requirements: 3.5, 13.5_
+    - _Requirements: 3.5, 13.5
 
-- [ ] 14. SOS Emergency Broadcast System **🔴 P0**
+- [ ] 14. SOS Emergency Broadcast System **P0**
   - [ ] 14.1 Implement SOS API endpoints
     - POST /api/sos/broadcast for triggering emergency
     - GET /api/sos/:id for SOS status
     - PUT /api/sos/:id/respond for responder acceptance
     - PUT /api/sos/:id/resolve for incident resolution
-    - _Requirements: 3.1, 3.4, 8.3, 8.4_
+    - _Requirements: 3.1, 3.4, 8.3, 8.4
   
   - [ ] 14.2 Implement Socket.IO real-time updates
     - Emit SOS broadcasts to nearby responders
     - Emit responder responses to SOS requester
     - Emit status updates for ongoing incidents
-    - _Requirements: 3.2, 3.3_
+    - _Requirements: 3.2, 3.3
   
   - [ ]* 14.3 Write property test for responder broadcast radius
     - **Property 6: Responder Broadcast Radius**
@@ -275,7 +275,7 @@ Tasks are marked with priority levels for strategic execution:
     - Test responder notification logic
     - Test response collection and ranking
     - Test incident resolution workflow
-    - _Requirements: 3.4, 8.4_
+    - _Requirements: 3.4, 8.4
 
 - [ ] 15. Responder Management
   - [ ] 15.1 Implement responder API endpoints
@@ -283,14 +283,14 @@ Tasks are marked with priority levels for strategic execution:
     - GET /api/responders/nearby for proximity queries
     - PUT /api/responders/:id/availability for status updates
     - Add responder verification workflow
-    - _Requirements: 8.1, 8.5_
+    - _Requirements: 8.1, 8.5
   
   - [ ]* 15.2 Write unit tests for responder management
     - Test responder registration and verification
     - Test nearby responder queries with PostGIS
     - Test availability status updates
     - Test multiple responder type support
-    - _Requirements: 8.1, 8.5_
+    - _Requirements: 8.1, 8.5
 
 - [ ] 16. Crowdsourced Observations
   - [ ] 16.1 Implement observation submission
@@ -298,7 +298,7 @@ Tasks are marked with priority levels for strategic execution:
     - Store observations in MongoDB with geospatial index
     - Link observations to H3 hexagons
     - Calculate contribution weight based on reputation
-    - _Requirements: 6.2, 10.4_
+    - _Requirements: 6.2, 10.4
   
   - [ ]* 16.2 Write property test for reputation-weighted aggregation
     - **Property: Reputation-Weighted Aggregation**
@@ -309,7 +309,7 @@ Tasks are marked with priority levels for strategic execution:
     - Test H3 hexagon linking
     - Test reputation-based weighting
     - Test observation verification workflow
-    - _Requirements: 6.2, 10.4_
+    - _Requirements: 6.2, 10.4
 
 - [ ] 17. Checkpoint - Backend API Complete
   - Ensure all tests pass, ask the user if questions arise.
@@ -320,69 +320,69 @@ Tasks are marked with priority levels for strategic execution:
     - Configure Redux Toolkit for state management
     - Set up React Router for navigation
     - Configure Axios for API calls
-    - _Requirements: None (infrastructure)_
+    - _Requirements: None (infrastructure)
   
   - [ ] 18.2 Implement authentication UI
     - Create Login component
     - Create Register component
     - Implement auth slice in Redux
     - Add protected route wrapper
-    - _Requirements: None (infrastructure)_
+    - _Requirements: None (infrastructure)
   
   - [ ]* 18.3 Write unit tests for auth components
     - Test login form validation
     - Test registration form validation
     - Test auth state management
     - Test protected route behavior
-    - _Requirements: None (infrastructure)_
+    - _Requirements: None (infrastructure)
 
-- [ ] 19. Map Visualization with Leaflet **🔴 P0**
+- [ ] 19. Map Visualization with Leaflet ** P0**
   - [ ] 19.1 Implement MapView component
     - Integrate Leaflet.js for map rendering
     - Add user location tracking with Geolocation API
     - Implement map controls (zoom, pan, center)
     - Add loading states and error handling
-    - _Requirements: 2.2_
+    - _Requirements: 2.2
   
   - [ ] 19.2 Implement SafetyOverlay component
     - Fetch safety hexagons from API
     - Render H3 hexagons as polygons on map
     - Apply color gradient based on safety scores
     - Add hexagon click handlers for details
-    - _Requirements: 4.4_
+    - _Requirements: 4.4
   
   - [ ] 19.3 Implement RouteDisplay component
     - Display calculated safe routes on map
     - Show route metrics (distance, time, safety)
     - Add route comparison UI for multiple options
-    - _Requirements: 5.3, 5.4_
+    - _Requirements: 5.3, 5.4
   
   - [ ]* 19.4 Write unit tests for map components
     - Test map initialization and rendering
     - Test hexagon overlay rendering
     - Test route display and metrics
-    - _Requirements: 2.2, 4.4, 5.4_
+    - _Requirements: 2.2, 4.4, 5.4
 
-- [ ] 20. Voice Interaction UI **🔴 P0**
+- [ ] 20. Voice Interaction UI **P0**
   - [ ] 20.1 Implement VoiceInput component
     - Add microphone button with recording indicator
     - Integrate Web Speech API for browser-based ASR
     - Send audio to Bhashini API for transcription
     - Display transcribed text and translations
-    - _Requirements: 1.1, 1.4_
+    - _Requirements: 1.1, 1.4
   
   - [ ] 20.2 Implement LanguageSelector component
     - Create dropdown for language selection
     - Support Hindi, Tamil, English, and 7+ Indian languages
     - Persist language preference in localStorage
-    - _Requirements: 1.4, 9.4_
+    - _Requirements: 1.4, 9.4
   
   - [ ]* 20.3 Write unit tests for voice components
     - Test microphone permission handling
     - Test audio recording and upload
     - Test transcription display
     - Test language selection persistence
-    - _Requirements: 1.1, 1.4_
+    - _Requirements: 1.1, 1.4
 
 - [ ] 21. SOS Emergency UI
   - [ ] 21.1 Implement SOSButton component
@@ -390,21 +390,21 @@ Tasks are marked with priority levels for strategic execution:
     - Add confirmation dialog to prevent accidental triggers
     - Capture current location and emergency type
     - Trigger SOS broadcast via API
-    - _Requirements: 3.1_
+    - _Requirements: 3.1
   
   - [ ] 21.2 Implement ResponderList component
     - Display available responders from Beckn responses
     - Show responder details (type, ETA, reputation)
     - Implement responder selection and confirmation
     - Add real-time status updates via Socket.IO
-    - _Requirements: 3.3, 3.4, 3.5_
+    - _Requirements: 3.3, 3.4, 3.5
   
   - [ ]* 21.3 Write unit tests for SOS components
     - Test SOS button trigger and confirmation
     - Test responder list rendering and sorting
     - Test responder selection flow
     - Test Socket.IO event handling
-    - _Requirements: 3.1, 3.4, 3.5_
+    - _Requirements: 3.1, 3.4, 3.5
 
 - [ ] 22. Safety Observation UI
   - [ ] 22.1 Implement ObservationForm component
@@ -413,7 +413,7 @@ Tasks are marked with priority levels for strategic execution:
     - Add observation type and rating selectors
     - Add photo upload capability
     - Submit observations to API
-    - _Requirements: 10.4_
+    - _Requirements: 10.4
   
   - [ ]* 22.2 Write unit tests for observation form
     - Test form validation
@@ -422,13 +422,13 @@ Tasks are marked with priority levels for strategic execution:
     - Test submission handling
     - _Requirements: 10.4_
 
-- [ ] 23. Progressive Web App (PWA) Setup **🔴 P0**
+- [ ] 23. Progressive Web App (PWA) Setup ** P0**
   - [ ] 23.1 Configure service worker
     - Implement cache-first strategy for static assets
     - Implement network-first strategy for API calls
     - Add offline fallback page
     - Configure cache expiration policies
-    - _Requirements: 2.1, 2.2_
+    - _Requirements: 2.1, 2.2
   
   - [ ] 23.2 Implement IndexedDB caching
     - Cache safety hexagon data locally
@@ -446,15 +446,15 @@ Tasks are marked with priority levels for strategic execution:
     - Test IndexedDB operations
     - Test offline queue management
     - Test online/offline state detection
-    - _Requirements: 2.2, 2.3_
+    - _Requirements: 2.2, 2.3
 
-- [ ] 24. Data Synchronization **🔴 P0**
+- [ ] 24. Data Synchronization ** P0**
   - [ ] 24.1 Implement sync service
     - Detect online/offline state changes
     - Sync queued operations when online
     - Implement Last-Write-Wins conflict resolution
     - Add exponential backoff for failed syncs
-    - _Requirements: 2.3, 10.1, 10.2, 10.3_
+    - _Requirements: 2.3, 10.1, 10.2, 10.3
   
   - [ ]* 24.2 Write property test for conflict resolution
     - **Property 4: Last-Write-Wins Conflict Resolution**
@@ -465,7 +465,7 @@ Tasks are marked with priority levels for strategic execution:
     - Test conflict resolution logic
     - Test retry with exponential backoff
     - Test sync completion notifications
-    - _Requirements: 10.2, 10.3, 10.5_
+    - _Requirements: 10.2, 10.3, 10.5
 
 - [ ] 25. Checkpoint - Frontend Complete
   - Ensure all tests pass, ask the user if questions arise.
@@ -476,37 +476,37 @@ Tasks are marked with priority levels for strategic execution:
     - Test voice interaction flow (record → transcribe → extract entities → action)
     - Test safe route calculation flow (select origin/destination → calculate → display)
     - Test offline-to-online transition with queued operations
-    - _Requirements: Multiple (integration)_
+    - _Requirements: Multiple (integration)
   
   - [ ]* 26.2 Write integration tests for API workflows
     - Test Bhashini → IndicBERT → Intent classification pipeline
     - Test SOS → Beckn → Responder coordination flow
     - Test Observation → Reputation → Safety score update pipeline
-    - _Requirements: Multiple (integration)_
+    - _Requirements: Multiple (integration)
 
-- [ ] 27. Performance Optimization **🟢 P2**
+- [ ] 27. Performance Optimization **P2**
   - [ ] 27.1 Optimize database queries
     - Add database indexes for frequently queried fields
     - Optimize PostGIS spatial queries
     - Implement query result caching with Redis
     - Add database connection pooling
-    - _Requirements: 11.5_
+    - _Requirements: 11.5
   
   - [ ] 27.2 Optimize frontend performance
     - Implement code splitting and lazy loading
     - Optimize map rendering with virtualization
     - Add image optimization and lazy loading
     - Implement debouncing for search inputs
-    - _Requirements: 11.2, 11.3_
+    - _Requirements: 11.2, 11.3
   
   - [ ]* 27.3 Run performance tests
     - Test API response times under load
     - Test map rendering performance
     - Test concurrent user handling
     - Test database query performance
-    - _Requirements: None (performance)_
+    - _Requirements: None (performance)
 
-- [ ] 28. Security Hardening **🟢 P2**
+- [ ] 28. Security Hardening **P2**
   - [ ] 28.1 Implement security measures
     - Add rate limiting to API endpoints
     - Implement CORS configuration
