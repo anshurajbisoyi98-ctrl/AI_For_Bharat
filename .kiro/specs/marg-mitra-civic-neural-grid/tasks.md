@@ -529,7 +529,7 @@ Tasks are marked with priority levels for strategic execution:
     - Test location data anonymization
     - _Requirements: 12.1, 12.2, 12.4, 12.5_
 
-- [ ] 29. Documentation and Deployment **🟢 P2**
+- [ ] 29. Documentation and Deployment ** P2**
   - [ ] 29.1 Write API documentation
     - Document all API endpoints with OpenAPI/Swagger
     - Add request/response examples
@@ -588,7 +588,7 @@ Tasks are marked with priority levels for strategic execution:
     - Test H3 normalization of ingested data
     - Test scheduled job execution
     - _Requirements: 15.1, 15.2, 15.3, 15.4_
-  
+ 
   - [ ]* 14.6 Write property test for data normalization
     - **Property: Data Ingestion H3 Normalization**
     - **Validates: Requirements 15.2**
@@ -600,19 +600,19 @@ Tasks are marked with priority levels for strategic execution:
     - Implement triggerSafetyCheckIn method
     - Implement escalateToEmergency method
     - Add background monitoring loop (30-second intervals)
-    - _Requirements: 16.1, 16.2, 16.3, 16.7_
+    - _Requirements: 16.1, 16.2, 16.3, 16.7
   
   - [ ] 15.2 Create sentinel database schema
     - Create sentinel_events table in PostgreSQL
     - Add indexes for user_id and h3_index
     - Add response constraint validation
-    - _Requirements: 16.3, 16.6_
+    - _Requirements: 16.3, 16.6
   
   - [ ] 15.3 Implement sentinel API endpoints
     - POST /api/sentinel/check-in-response for user responses
     - GET /api/sentinel/status for monitoring dashboard
     - Add Socket.IO events for real-time check-ins
-    - _Requirements: 16.3, 16.4, 16.5, 16.6_
+    - _Requirements: 16.3, 16.4, 16.5, 16.6
   
   - [ ]* 15.4 Write property test for sentinel conditions
     - **Property 14: Sentinel Trigger Conditions**
@@ -624,7 +624,7 @@ Tasks are marked with priority levels for strategic execution:
     - Test time threshold calculation
     - Test auto-escalation after no response
     - Test user response handling
-    - _Requirements: 16.2, 16.3, 16.4, 16.5, 16.6_
+    - _Requirements: 16.2, 16.3, 16.4, 16.5, 16.6
   
   - [ ] 15.6 Implement WearableService class
     - Implement processBiometricData method
@@ -632,21 +632,21 @@ Tasks are marked with priority levels for strategic execution:
     - Implement detectStress method with heart rate thresholds
     - Implement handleFallDetected with auto-escalation
     - Implement handleStressDetected with subtle notifications
-    - _Requirements: None (new feature)_
+    - _Requirements: None (new feature)
   
   - [ ] 15.7 Create wearable database schema
     - Create biometric_data table for sensor readings
     - Create wearable_events table for fall/stress events
     - Add indexes for user_id and timestamps
     - Add heart rate constraint validation
-    - _Requirements: None (new feature)_
+    - _Requirements: None (new feature)
   
   - [ ] 15.8 Implement wearable API endpoints
     - POST /api/wearable/biometric for data ingestion
     - POST /api/wearable/fall-response for user responses
     - GET /api/wearable/events for event history
     - Add Socket.IO events for real-time alerts
-    - _Requirements: None (new feature)_
+    - _Requirements: None (new feature)
   
   - [ ]* 15.9 Write property test for fall detection
     - **Property 15: Fall Detection Accuracy**
@@ -657,21 +657,21 @@ Tasks are marked with priority levels for strategic execution:
     - Test stress detection with heart rate thresholds
     - Test auto-escalation after no response to fall alert
     - Test biometric data storage
-    - _Requirements: None (new feature)_
+    - _Requirements: None (new feature)
   
   - [ ] 15.11 Implement comparative routing
     - Modify RoutingService.calculateComparativeRoutes method
     - Calculate both fastest (safetyWeight=0) and safest (safetyWeight=1) routes
     - Calculate safety differential metrics
     - Return comparison data structure
-    - _Requirements: 17.1, 17.2, 17.3, 17.4_
+    - _Requirements: 17.1, 17.2, 17.3, 17.4
   
   - [ ] 15.12 Create comparative routing API endpoint
     - GET /api/safety/route/compare with origin and destination
     - Return both routes with visual styling metadata
     - Return comparison card data
     - Add route recommendation logic based on time difference
-    - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6_
+    - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6
   
   - [ ] 15.13 Implement comparative routing UI
     - Update RouteDisplay component to show two routes
@@ -679,7 +679,7 @@ Tasks are marked with priority levels for strategic execution:
     - Create RouteComparison card component
     - Display time difference, safety improvement, percentage safer
     - Add route selection buttons
-    - _Requirements: 17.2, 17.3, 17.4, 17.7_
+    - _Requirements: 17.2, 17.3, 17.4, 17.7
   
   - [ ]* 15.14 Write property test for route comparison
     - **Property 16: Comparative Route Calculation**
@@ -690,7 +690,7 @@ Tasks are marked with priority levels for strategic execution:
     - Test safety differential calculation
     - Test route recommendation logic
     - Test UI rendering of both routes
-    - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6_
+    - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6
 
 - [ ] 16. Checkpoint - Intelligence & Hardware Complete
   - Ensure all tests pass, ask the user if questions arise.
@@ -699,27 +699,27 @@ Tasks are marked with priority levels for strategic execution:
   - Verify wearable integration is functional
   - Verify comparative routing displays correctly
 
-- [ ] 31. Data Pipeline & Intelligence (The "Brain") **🟡 P1**
+- [ ] 31. Data Pipeline & Intelligence (The "Brain") ** P1**
   - [ ] 31.1 Implement NCRB & Census Scraper (Python/Node)
     - Write ETL script to parse NCRB PDF/Excel files from `data/sources`
     - Implement normalization logic to map District strings to H3 Lat/Long centroids
-    - _Requirements: 15.1, 15.3_
+    - _Requirements: 15.1, 15.3
   
   - [ ] 31.2 Implement Infrastructure Seeder
     - Write script to fetch Police/Hospitals/Fuel from Overpass API (OSM)
     - Create `Infrastructure` Mongoose model and seed database
-    - _Requirements: 15.2, 15.4_
+    - _Requirements: 15.2, 15.4
   
   - [ ] 31.3 Update Routing Algorithm (Safe vs Fast)
     - Modify `RoutingService` to calculate two paths per request
     - Implement AHP weight adjustment logic for the "Safest" path calculation
-    - _Requirements: 17.1, 17.2, 17.3_
+    - _Requirements: 17.1, 17.2, 17.3
 
-- [ ] 32. Proactive Safety & Hardware (The "Guardian") **🟡 P1**
+- [ ] 32. Proactive Safety & Hardware (The "Guardian") ** P1**
   - [ ] 32.1 Implement Sentinel Background Service
     - Create `BackgroundLocationTask` (using Service Workers or Background Actions)
     - Implement logic: `Stationary + HighRiskZone + Timer = TriggerAlert`
-    - _Requirements: 16.1, 16.2, 16.4_
+    - _Requirements: 16.1, 16.2, 16.4
   
   - [ ] 32.2 Wearable Integration (MVP Scope)
     - Create `WatchConnector` module (Web Bluetooth or Native Bridge)
