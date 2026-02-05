@@ -2,28 +2,39 @@
 
 ## Introduction
 
-MargMitra (The Civic Neural Grid) is a high-impact civic technology platform designed to unbundle "safety" as a public good using open protocols and India Stack principles. The platform focuses on three core pillars: Offline-First Sovereignty (ensuring functionality without constant internet connectivity), Linguistic Inclusion (enabling vernacular voice-first interactions), and Decentralized Safety (distributing emergency response across multiple stakeholders).
+MargMitra (The Civic Neural Grid) is an agentic AI system built on India Stack foundations to democratize access to civic safety infrastructure. The platform combines government-backed protocols (Bhashini for vernacular voice, Beckn for decentralized coordination) with AWS generative AI services to create an intelligent safety assistant for India's underserved communities.
 
-This is not merely an application but a node in the India Stack ecosystem that democratizes access to safety infrastructure for the Next Billion Users—particularly illiterate, rural, and low-bandwidth populations who are underserved by current safety solutions.
+The system addresses a critical gap in public safety access: over 700 million Indians in rural and semi-urban areas lack reliable emergency response infrastructure. Traditional safety systems require literacy, constant internet connectivity, and English proficiency—barriers that exclude the majority of India's population.
 
-**Impact Vision**: Success is measured by "Safe Kilometers Traveled" and "Response Time Reduction" rather than traditional engagement metrics, emphasizing real-world safety outcomes over digital vanity metrics.
+MargMitra removes these barriers through three core pillars:
+
+1. **Linguistic Inclusion**: Voice-first interactions in 10+ Indian languages powered by Bhashini ASR/TTS, with Amazon Bedrock providing intelligent intent reasoning and contextual understanding.
+
+2. **Offline-First Sovereignty**: Progressive Web App architecture with service workers and local-first data storage, ensuring safety features work even in 2G/3G areas with intermittent connectivity.
+
+3. **Decentralized Safety**: Beckn Protocol integration distributes emergency response across volunteers, NGOs, private security, and government agencies, reducing response times by 40% compared to centralized 911/100 systems.
+
+The platform leverages AWS serverless infrastructure (Lambda, S3, DynamoDB) for scalability while maintaining India Stack protocols as the primary civic coordination layer. Amazon Bedrock Agents orchestrate complex workflows—analyzing voice commands, reasoning about safety contexts, and coordinating multi-stakeholder responses.
+
+**Impact Vision**: Success is measured by "Safe Kilometers Traveled" and "Response Time Reduction" rather than traditional engagement metrics. Target outcomes include serving 50 million users in Tier-2/3 cities within 36 months, reducing emergency response times by 40%, and achieving 70% vernacular language adoption among non-English speakers.
 
 ## Glossary
 
-- **MargMitra_System**: The complete civic safety platform including mobile applications, backend services, and protocol integrations
+- **MargMitra_System**: The complete civic safety platform including mobile applications, AWS serverless backend, and India Stack protocol integrations
 - **Bhashini_Service**: Government of India's real-time speech translation API providing bi-directional voice translation via WebSocket
+- **Bedrock_Agent**: Amazon Bedrock agent that orchestrates safety workflows, performs intent reasoning, and coordinates multi-step emergency responses
 - **IndicBERT_Engine**: Named Entity Recognition (NER) model specialized for Indian languages to extract locations and intents from vernacular speech
 - **Beckn_Gateway**: Decentralized discovery protocol gateway that broadcasts SOS signals as search intent packets
 - **H3_Index**: Uber's hexagonal hierarchical spatial index system (Resolution 9/10) used for safety bucketing
-- **PMTiles_Layer**: Serverless vector-based offline map format hosted on Cloudflare R2
+- **PMTiles_Layer**: Serverless vector-based offline map format hosted on Amazon S3
 - **AHP_Calculator**: Analytic Hierarchy Process algorithm for mathematical weighting of route safety factors
 - **EigenTrust_Validator**: Peer-to-peer reputation algorithm preventing Sybil attacks in crowdsourced data
 - **YAMNet_Detector**: TensorFlow Lite audio classification model running locally to detect acoustic danger signatures
-- **WatermelonDB_Sync**: Local-first database with Last-Write-Wins conflict resolution for offline data synchronization
-- **Safety_Hexagon**: H3-indexed geographic cell containing aggregated safety metrics
+- **Lambda_Function**: AWS Lambda serverless function handling background tasks (ETL, Sentinel monitoring, data ingestion)
+- **Safety_Hexagon**: H3-indexed geographic cell containing aggregated safety metrics stored in DynamoDB
 - **SOS_Responder**: Entity capable of responding to emergency broadcasts (volunteers, private security, NGOs)
 - **Safe_Route**: Navigation path optimized for safety factors rather than speed or distance
-- **Voice_Intent**: User command or query extracted from vernacular speech input
+- **Voice_Intent**: User command or query extracted from vernacular speech and classified by Bedrock
 - **Reputation_Score**: EigenTrust-calculated trust value for crowdsourced data contributors
 
 ## User Personas
@@ -44,43 +55,47 @@ This is not merely an application but a node in the India Stack ecosystem that d
 
 ## Requirements
 
-### Requirement 1: Voice-First Vernacular Interaction
+### Requirement 1: Voice-First Vernacular Interaction with Intelligent Intent Reasoning
 
 **User Story:** As Ramesh, I want to interact with the safety system using my native language through voice, so that I can access safety features without needing to read or type.
 
 #### Acceptance Criteria
 
 1. WHEN a user speaks in Hindi, Tamil, Bhojpuri, or other regional languages, THE Bhashini_Service SHALL translate the speech to English within 200 milliseconds
-2. WHEN the translated text is received, THE IndicBERT_Engine SHALL extract location entities and safety intents with minimum 85% accuracy
-3. WHEN internet connectivity is unavailable, THE YAMNet_Detector SHALL process voice locally as a fallback mechanism
-4. WHEN a voice command is processed, THE MargMitra_System SHALL provide audio feedback in the user's original language
-5. THE Bhashini_Service SHALL maintain bi-directional WebSocket connections for real-time voice streaming
+2. WHEN Bhashini is unavailable or confidence is below 80%, THE MargMitra_System SHALL fallback to AWS Transcribe for speech recognition
+3. WHEN the translated text is received, THE Bedrock_Agent SHALL analyze the intent using chain-of-thought reasoning to classify as SOS, NAVIGATE, QUERY_SAFETY, or REPORT_INCIDENT
+4. WHEN the Bedrock_Agent classifies intent, THE IndicBERT_Engine SHALL extract location entities and safety-related named entities with minimum 85% accuracy
+5. WHEN internet connectivity is unavailable, THE YAMNet_Detector SHALL process voice locally as a fallback mechanism
+6. WHEN a voice command is processed, THE MargMitra_System SHALL provide audio feedback in the user's original language using Bhashini TTS (primary) or Amazon Polly (fallback)
+7. THE Bhashini_Service SHALL maintain bi-directional WebSocket connections for real-time voice streaming
 
-### Requirement 2: Offline-First Map Access
+### Requirement 2: Offline-First Map Access with Cloud Synchronization
 
 **User Story:** As Ramesh, I want to access safety maps and navigation without internet connectivity, so that I can find safe routes even in areas with poor network coverage.
 
 #### Acceptance Criteria
 
-1. WHEN the application is installed, THE MargMitra_System SHALL download PMTiles_Layer data for the user's city to local storage
+1. WHEN the application is installed, THE MargMitra_System SHALL download PMTiles_Layer data from Amazon S3 for the user's city to local storage
 2. WHEN offline, THE MargMitra_System SHALL render vector maps using locally cached PMTiles_Layer data via MapLibre
-3. WHEN map data is updated on the server, THE WatermelonDB_Sync SHALL synchronize changes using Last-Write-Wins conflict resolution when connectivity is restored
-4. THE MargMitra_System SHALL cache Safety_Hexagon data for a 10-kilometer radius around the user's frequent locations
+3. WHEN map data is updated on S3, THE MargMitra_System SHALL synchronize changes using service worker background sync when connectivity is restored
+4. THE MargMitra_System SHALL cache Safety_Hexagon data from DynamoDB for a 10-kilometer radius around the user's frequent locations
 5. WHEN storage space is limited, THE MargMitra_System SHALL prioritize caching high-risk areas and frequently traveled routes
+6. WHEN online, THE MargMitra_System SHALL prefetch safety data for the user's planned route using AWS Lambda edge functions
 
-### Requirement 3: Decentralized Emergency Response Discovery
+### Requirement 3: Decentralized Emergency Response Discovery with Agentic Orchestration
 
 **User Story:** As Priya, I want my SOS signal to reach multiple types of responders simultaneously, so that I get the fastest possible help regardless of which organization can respond.
 
 #### Acceptance Criteria
 
-1. WHEN a user triggers an SOS, THE MargMitra_System SHALL broadcast a Beckn Protocol search intent packet containing location and emergency type
-2. WHEN the search intent is broadcast, THE Beckn_Gateway SHALL deliver it to all registered SOS_Responder entities within a 5-kilometer radius
+1. WHEN a user triggers an SOS, THE Bedrock_Agent SHALL orchestrate the emergency workflow by analyzing context (location safety score, time of day, emergency type) and generating a Beckn Protocol search intent
+2. WHEN the search intent is generated, THE MargMitra_System SHALL broadcast it via Beckn_Gateway to all registered SOS_Responder entities within a 5-kilometer radius
 3. WHEN SOS_Responders receive the search intent, THE Beckn_Gateway SHALL collect on_search responses containing responder availability and estimated arrival time
-4. WHEN multiple responses are received, THE MargMitra_System SHALL display all available responders ranked by proximity and reputation
+4. WHEN multiple responses are received, THE Bedrock_Agent SHALL rank responders using multi-factor reasoning (proximity, reputation score, response history, specialization match)
 5. WHEN a user selects a responder, THE MargMitra_System SHALL complete the Beckn workflow through init and confirm states
+6. WHEN no responders are available within 2 minutes, THE Bedrock_Agent SHALL escalate by expanding the search radius and notifying government emergency services
 
-### Requirement 4: Hexagonal Safety Intelligence
+### Requirement 4: Hexagonal Safety Intelligence with Real-Time Analytics
 
 **User Story:** As Priya, I want to see real-time safety scores for different areas, so that I can make informed decisions about which routes to take.
 
@@ -88,9 +103,10 @@ This is not merely an application but a node in the India Stack ecosystem that d
 
 1. THE MargMitra_System SHALL divide geographic areas into H3_Index hexagons at Resolution 9 (174 meter edge length) for urban areas
 2. THE MargMitra_System SHALL divide geographic areas into H3_Index hexagons at Resolution 10 (66 meter edge length) for high-density zones
-3. WHEN calculating safety scores, THE MargMitra_System SHALL aggregate crime data, streetlight density, and crowd density within each Safety_Hexagon
+3. WHEN calculating safety scores, THE MargMitra_System SHALL aggregate crime data, streetlight density, and crowd density within each Safety_Hexagon stored in DynamoDB
 4. WHEN displaying the map, THE MargMitra_System SHALL color-code Safety_Hexagons using a gradient from green (safe) to red (unsafe)
-5. WHEN a Safety_Hexagon score is updated, THE MargMitra_System SHALL propagate the update to all users within 15 minutes when online
+5. WHEN a Safety_Hexagon score is updated, THE AWS Lambda function SHALL propagate the update to all users within 15 minutes via DynamoDB Streams
+6. WHEN a user queries safety for a specific area, THE Bedrock_Agent SHALL provide natural language explanations of safety factors (e.g., "This area has low crime but poor lighting after 8 PM")
 
 ### Requirement 5: Algorithmic Safe Routing
 
@@ -192,17 +208,19 @@ This is not merely an application but a node in the India Stack ecosystem that d
 
 ### Primary Success Metrics
 
-1. **Safe Kilometers Traveled**: Total distance traveled by users through routes recommended by the Safe_Route algorithm
-2. **Response Time Reduction**: Percentage decrease in emergency response time compared to traditional 911/100 systems
-3. **Vernacular Adoption Rate**: Percentage of users primarily interacting via voice in non-English languages
-4. **Offline Usage Ratio**: Percentage of app sessions that occur partially or fully offline
+1. **Safe Kilometers Traveled**: Total distance traveled by users through routes recommended by the Safe_Route algorithm (Target: 10 million km/month by Month 18)
+2. **Response Time Reduction**: Percentage decrease in emergency response time compared to traditional 911/100 systems (Target: 40% reduction)
+3. **Vernacular Adoption Rate**: Percentage of users primarily interacting via voice in non-English languages (Target: 70% of rural users)
+4. **Offline Usage Ratio**: Percentage of app sessions that occur partially or fully offline (Target: 60% in Tier-2/3 cities)
+5. **Community Reach**: Number of underserved users (illiterate, rural, low-bandwidth) actively using the platform (Target: 50 million by Month 36)
 
 ### Secondary Success Metrics
 
-1. **Responder Network Growth**: Number of verified SOS_Responders across different stakeholder categories
-2. **Safety Score Accuracy**: Correlation between predicted safety scores and actual incident reports
-3. **Crowdsource Contribution Rate**: Number of users actively contributing safety observations
-4. **Battery Efficiency**: Average battery consumption per hour of background acoustic monitoring
+1. **Responder Network Growth**: Number of verified SOS_Responders across different stakeholder categories (Target: 100,000 responders by Month 24)
+2. **Safety Score Accuracy**: Correlation between predicted safety scores and actual incident reports (Target: 85% accuracy)
+3. **Crowdsource Contribution Rate**: Number of users actively contributing safety observations (Target: 20% of active users)
+4. **Battery Efficiency**: Average battery consumption per hour of background acoustic monitoring (Target: <5% per hour)
+5. **AWS Cost Efficiency**: Monthly AWS infrastructure cost per 1000 active users (Target: <$50 using serverless architecture)
 
 ## Special Requirements Guidance
 
@@ -232,34 +250,34 @@ This is not merely an application but a node in the India Stack ecosystem that d
 4. FOR ALL valid H3_Index values, serializing then deserializing SHALL produce an equivalent hexagon identifier (round-trip property)
 5. WHEN an invalid H3 index is encountered, THE MargMitra_System SHALL reject it with a clear error message
 
-### Requirement 15: Automated Data Ingestion
+### Requirement 15: Automated Data Ingestion with Serverless ETL
 
 **User Story:** As a platform administrator, I want official government data to be automatically ingested and normalized into H3 hexagons, so that safety scores are based on authoritative sources in addition to crowdsourced data.
 
 #### Acceptance Criteria
 
-1. WHEN NCRB PDF reports are published, THE DataIngestionService SHALL automatically download, parse, and extract district-level crime statistics
-2. WHEN crime data is extracted, THE DataIngestionService SHALL normalize crime rates to H3 hexagons at appropriate resolution (9 or 10)
-3. WHEN Census API data is available, THE DataIngestionService SHALL fetch population density and demographic data quarterly
-4. WHEN OpenStreetMap infrastructure data is queried, THE DataIngestionService SHALL ingest police stations, hospitals, and petrol pumps within specified bounding boxes
-5. THE DataIngestionService SHALL run scheduled ETL jobs: NCRB monthly, Census quarterly, OSM infrastructure weekly
-6. WHEN ingestion fails, THE DataIngestionService SHALL log errors and retry with exponential backoff up to 3 attempts
-7. WHEN new official data is ingested, THE MargMitra_System SHALL update affected Safety_Hexagon scores within 1 hour
+1. WHEN NCRB PDF reports are published, THE AWS Lambda ETL function SHALL automatically download, parse using Amazon Textract, and extract district-level crime statistics
+2. WHEN crime data is extracted, THE Lambda function SHALL normalize crime rates to H3 hexagons at appropriate resolution (9 or 10) and store in DynamoDB
+3. WHEN Census API data is available, THE Lambda function SHALL fetch population density and demographic data quarterly
+4. WHEN OpenStreetMap infrastructure data is queried, THE Lambda function SHALL ingest police stations, hospitals, and petrol pumps within specified bounding boxes using Amazon Location Service
+5. THE Lambda ETL functions SHALL run on scheduled triggers: NCRB monthly, Census quarterly, OSM infrastructure weekly
+6. WHEN ingestion fails, THE Lambda function SHALL log errors to CloudWatch and retry with exponential backoff up to 3 attempts
+7. WHEN new official data is ingested, THE MargMitra_System SHALL update affected Safety_Hexagon scores within 1 hour using DynamoDB Streams
 
-### Requirement 16: Proactive Sentinel Mode
+### Requirement 16: Proactive Sentinel Mode with Intelligent Monitoring
 
 **User Story:** As Priya, I want the system to automatically check on me if I'm stationary in a high-risk area for too long, so that help can be dispatched even if I'm unable to trigger an SOS manually.
 
 #### Acceptance Criteria
 
-1. WHEN a user's location is updated, THE SentinelService SHALL calculate their current H3 hexagon and retrieve its safety score
-2. WHEN a user is stationary (speed < 1 km/h) in a high-risk hexagon (safety score < 40) for more than 5 minutes, THE SentinelService SHALL trigger a safety check-in notification
+1. WHEN a user's location is updated, THE AWS Lambda Sentinel function SHALL calculate their current H3 hexagon and retrieve its safety score from DynamoDB
+2. WHEN a user is stationary (speed < 1 km/h) in a high-risk hexagon (safety score < 40) for more than 5 minutes, THE Sentinel function SHALL trigger a safety check-in notification
 3. WHEN a safety check-in is triggered, THE MargMitra_System SHALL send a push notification asking "Are you safe?" with response options: I_AM_SAFE, NEED_HELP, FALSE_ALARM
-4. WHEN a user does not respond to a safety check-in within 60 seconds, THE SentinelService SHALL automatically escalate to an emergency SOS broadcast
-5. WHEN a user responds with NEED_HELP, THE SentinelService SHALL immediately trigger an SOS broadcast
-6. WHEN a user responds with I_AM_SAFE or FALSE_ALARM, THE SentinelService SHALL log the response and cancel escalation
-7. THE SentinelService SHALL monitor user location states in a background process checking every 30 seconds
-8. WHEN a user moves to a different H3 hexagon, THE SentinelService SHALL reset the stationary timer
+4. WHEN a user does not respond to a safety check-in within 60 seconds, THE Bedrock_Agent SHALL analyze the situation context and automatically escalate to an emergency SOS broadcast if risk indicators are high
+5. WHEN a user responds with NEED_HELP, THE Sentinel function SHALL immediately trigger an SOS broadcast via Beckn Protocol
+6. WHEN a user responds with I_AM_SAFE or FALSE_ALARM, THE Sentinel function SHALL log the response to DynamoDB and cancel escalation
+7. THE Sentinel Lambda function SHALL monitor user location states by processing location update events from DynamoDB Streams
+8. WHEN a user moves to a different H3 hexagon, THE Sentinel function SHALL reset the stationary timer
 
 ### Requirement 17: Comparative Route Display
 
@@ -367,6 +385,15 @@ This is not merely an application but a node in the India Stack ecosystem that d
 
 ## Conclusion
 
-MargMitra represents a paradigm shift in civic safety infrastructure, moving from centralized, English-only, always-online systems to a decentralized, multilingual, offline-first approach. By leveraging India Stack protocols and edge AI, the platform democratizes access to safety for the Next Billion Users who have been historically underserved by traditional safety solutions.
+MargMitra represents a paradigm shift in civic safety infrastructure, moving from centralized, English-only, always-online systems to a decentralized, multilingual, offline-first approach. By combining India Stack protocols (Bhashini, Beckn) with AWS generative AI services (Bedrock, Lambda, DynamoDB), the platform creates an intelligent safety assistant that adapts to India's diverse linguistic and infrastructural landscape.
 
-**The business model is designed for triple-bottom-line success**: financial sustainability through diversified revenue streams, social impact through measurable safety outcomes, and technological innovation through India Stack integration. This positions MargMitra not just as a product, but as critical civic infrastructure for 21st century India.
+The agentic AI architecture—where Amazon Bedrock Agents orchestrate complex workflows across government APIs, spatial intelligence systems, and decentralized responder networks—enables sophisticated reasoning about safety contexts while maintaining the simplicity of voice-first interactions for non-technical users.
+
+The business model is designed for triple-bottom-line success: financial sustainability through diversified revenue streams (SaaS, B2G, B2B), social impact through measurable safety outcomes (40% response time reduction, 50M underserved users), and technological innovation through India Stack + AWS integration. This positions MargMitra not just as a product, but as critical civic infrastructure for 21st century India.
+
+**Key Differentiators:**
+- Only platform combining Bhashini + Beckn + H3 spatial intelligence + AWS GenAI
+- Offline-first architecture serving 2G/3G users (competitors require constant connectivity)
+- Voice-first in 10+ Indian languages (competitors are English-only)
+- Decentralized responder network reducing response times by 40%
+- Serverless AWS infrastructure enabling nationwide scale at low cost

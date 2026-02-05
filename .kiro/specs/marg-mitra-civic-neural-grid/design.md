@@ -1,30 +1,57 @@
-# Design Document: MargMitra (The Civic Neural Grid) - MERN + India Stack Hybrid
+# Design Document: MargMitra (The Civic Neural Grid)
 
 ## Overview
 
-MargMitra is a civic safety platform that combines the MERN stack (MongoDB, Express.js, React, Node.js) with India Stack protocols to create a scalable, accessible civic technology solution. The hybrid architecture leverages modern web technologies for the application layer while integrating government-backed infrastructure for linguistic inclusion and decentralized coordination.
+MargMitra is an agentic AI system built on India Stack foundations (Bhashini, Beckn Protocol) and enhanced with AWS generative AI services to create an intelligent civic safety assistant. The hybrid architecture combines government-backed protocols for linguistic inclusion and decentralized coordination with AWS serverless infrastructure for scalability and intelligent orchestration.
+
+The system addresses a critical gap: over 700 million Indians lack access to reliable emergency response infrastructure due to barriers of literacy, connectivity, and language. MargMitra removes these barriers through voice-first interactions in 10+ Indian languages, offline-capable Progressive Web App architecture, and decentralized emergency response coordination.
 
 **Technology Stack**:
-- **Frontend**: React 18 Progressive Web App (PWA)
-- **Backend**: Node.js 18+ with Express.js 4.x
-- **Application Database**: MongoDB 6.0+ (users, sessions, observations)
-- **Spatial Database**: PostgreSQL 14+ with PostGIS extension (safety hexagons, routes)
-- **Cache**: Redis 7.0+ (API responses, session data)
-- **Real-time**: Socket.IO 4.x (WebSocket connections)
-- **Maps**: Leaflet.js with PMTiles on Cloudflare R2
-- **Voice**: Bhashini API (primary) + Web Speech API (fallback)
-- **NER**: IndicBERT via REST API
-- **Discovery**: Beckn Protocol for responder coordination
-- **Spatial Indexing**: Uber H3 (Resolution 9/10)
-- **Authentication**: JWT with bcrypt + optional Aadhaar
+
+**Frontend Layer**:
+- React 18 Progressive Web App (PWA) with service workers
+- Redux Toolkit for state management
+- Leaflet.js for interactive maps with H3 hexagon overlays
+- IndexedDB for offline data caching
+- Web Speech API for local voice fallback
+
+**Backend Layer**:
+- Node.js 18+ with Express.js 4.x for API server
+- AWS Lambda for serverless background tasks (ETL, Sentinel monitoring)
+- Amazon API Gateway for REST API management
+- Socket.IO for real-time bidirectional communication
+
+**AI & Intelligence Layer**:
+- Amazon Bedrock (Claude 3.5 Sonnet) for intent reasoning and workflow orchestration
+- Bhashini API (primary) for vernacular ASR/TTS
+- AWS Transcribe (fallback) for speech recognition
+- Amazon Polly (fallback) for speech synthesis
+- IndicBERT for Indian language NER
+
+**Data Layer**:
+- Amazon DynamoDB for safety hexagons, user sessions, real-time data
+- PostgreSQL 14+ with PostGIS for complex spatial queries and routing
+- Amazon S3 for PMTiles map storage and user uploads
+- Amazon ElastiCache (Redis) for API response caching
+
+**Integration Layer**:
+- Beckn Protocol for decentralized responder discovery
+- Amazon Location Service for geocoding and place search
+- AWS EventBridge for event-driven architecture
+- Amazon CloudWatch for monitoring and logging
+
+**Spatial Intelligence**:
+- Uber H3 (Resolution 9/10) for hexagonal safety bucketing
+- PostGIS for route calculation and spatial analysis
+- Amazon Location Service for reverse geocoding
 
 **Key Design Principles**:
-- **MERN for Application**: React UI, Node.js services, MongoDB for flexible data
-- **India Stack for Civic Infrastructure**: Bhashini, Beckn, PostGIS for government integration
-- **Progressive Enhancement**: Core features work without India Stack, enhanced when available
-- **Offline-First**: Service workers + IndexedDB for offline capability
-- **Privacy by Design**: H3 anonymization, HTTPS encryption
-- **Multilingual**: Voice-first in 10+ Indian languages
+- India Stack First: Bhashini and Beckn as primary civic coordination protocols
+- AWS Enhancement: Bedrock Agents orchestrate complex workflows and provide intelligent reasoning
+- Offline-First: Service workers and local storage ensure functionality in 2G/3G areas
+- Serverless Scale: Lambda functions handle background tasks with automatic scaling
+- Privacy by Design: H3 anonymization, end-to-end encryption, minimal data retention
+- Voice-First: Natural language interactions in 10+ Indian languages for non-literate users
 
 ## Architecture
 
@@ -47,54 +74,196 @@ flowchart TB
         I[Bhashini Client]
         J[IndicBERT Client]
         K[Beckn Client]
-        L[H3 Service]
     end
     
-    subgraph Databases["Hybrid DB"]
-        M[MongoDB]
-        N[PostgreSQL PostGIS]
-        O[Redis]
+    subgraph AWS["AWS Services"]
+        L[Lambda Functions]
+        M[DynamoDB]
+        N[S3 Storage]
+        O[ElastiCache Redis]
+        P[Bedrock Agents]
+        Q[API Gateway]
+        R[Transcribe/Polly]
+        S[Location Service]
     end
     
     subgraph IndiaStack["India Stack"]
-        P[Bhashini API]
-        Q[Beckn Gateway]
+        T[Bhashini API]
+        U[Beckn Gateway]
     end
     
-    subgraph External["External"]
-        R[Cloudflare R2]
-        S[OSM Data]
+    subgraph Spatial["Spatial Layer"]
+        V[PostgreSQL PostGIS]
+        W[H3 Service]
     end
     
     A --> F
     B --> C
     C --> D
-    E --> R
+    E --> N
     F --> G
     F --> H
     F --> I
     F --> J
     F --> K
     F --> L
-    I --> P
-    K --> Q
     F --> M
     F --> N
     F --> O
-    G --> A
+    F --> V
+    I --> T
+    I --> R
+    K --> U
+    L --> P
+    L --> M
+    L --> S
+    P --> T
+    P --> U
+    W --> V
 ```
 
 ### Layer Descriptions
 
-**Frontend Layer (React PWA)**: Single-page application with offline capabilities via service workers. Redux Toolkit manages state, IndexedDB caches data locally, Leaflet renders interactive maps with PMTiles.
+**Frontend Layer (React PWA)**: Single-page application with offline capabilities via service workers. Redux Toolkit manages state, IndexedDB caches safety data locally, Leaflet renders interactive maps with H3 hexagon overlays. PMTiles stored on Amazon S3 enable serverless vector map delivery.
 
-**Backend Layer (Node.js + Express)**: RESTful API server with microservice architecture. Express handles HTTP requests, Socket.IO provides real-time bidirectional communication. Services integrate with India Stack APIs.
+**Backend Layer (Node.js + Express)**: RESTful API server handling user requests, authentication, and real-time communication via Socket.IO. Integrates with India Stack APIs (Bhashini, Beckn) and AWS services. Deployed on AWS Elastic Beanstalk or ECS for managed scaling.
 
-**Database Layer (Hybrid)**: MongoDB stores user accounts, sessions, and crowdsourced observations. PostgreSQL with PostGIS handles spatial queries for safety hexagons and route calculation. Redis caches frequently accessed data.
+**AWS Services Layer**: 
+- **Lambda Functions**: Serverless compute for background tasks (ETL data ingestion, Sentinel monitoring, safety score calculations)
+- **DynamoDB**: NoSQL database for safety hexagons, user sessions, SOS broadcasts with single-digit millisecond latency
+- **S3**: Object storage for PMTiles map data, user-uploaded photos, NCRB data archives
+- **ElastiCache (Redis)**: In-memory caching for API responses and session data
+- **Bedrock Agents**: Orchestrate complex workflows using Claude 3.5 Sonnet for intent reasoning, responder ranking, and contextual safety analysis
+- **API Gateway**: Managed REST API endpoints with throttling and authentication
+- **Transcribe/Polly**: Fallback speech services when Bhashini is unavailable
+- **Location Service**: Geocoding, reverse geocoding, and place search for Indian addresses
 
-**India Stack Layer**: Bhashini provides multilingual voice ASR/TTS. Beckn Protocol enables decentralized responder discovery. Both are accessed via REST/WebSocket APIs from Node.js backend.
+**India Stack Layer**: 
+- **Bhashini**: Government of India's multilingual voice API providing ASR/TTS in 10+ Indian languages via WebSocket streaming
+- **Beckn Protocol**: Decentralized discovery protocol for broadcasting SOS signals and coordinating multi-stakeholder emergency responses
 
-**External Services**: Cloudflare R2 hosts PMTiles for serverless vector map delivery. OpenStreetMap provides base map data.
+**Spatial Layer**:
+- **PostgreSQL with PostGIS**: Handles complex spatial queries, route calculation using pgRouting, and geofencing operations
+- **H3 Service**: Converts coordinates to hexagonal indices for safety bucketing and spatial aggregation
+
+## Agentic AI Architecture with Amazon Bedrock
+
+### Bedrock Agent Design
+
+MargMitra uses Amazon Bedrock Agents powered by Claude 3.5 Sonnet to orchestrate complex safety workflows that require multi-step reasoning, contextual understanding, and coordination across India Stack protocols.
+
+**Agent Capabilities**:
+
+1. **Intent Reasoning**: Analyzes vernacular voice commands translated by Bhashini to classify user intent (SOS, NAVIGATE, QUERY_SAFETY, REPORT_INCIDENT) with contextual understanding beyond keyword matching.
+
+2. **Safety Context Analysis**: Evaluates emergency situations by reasoning about multiple factors: location safety score, time of day, user history, nearby infrastructure, and historical incident patterns.
+
+3. **Responder Ranking**: Applies multi-factor reasoning to rank Beckn Protocol responders based on proximity, reputation scores, specialization match, response history, and current availability.
+
+4. **Natural Language Explanations**: Generates human-readable safety insights in the user's preferred language (e.g., "This area has low crime but poor lighting after 8 PM. Consider taking the alternate route through the market area").
+
+5. **Workflow Orchestration**: Coordinates multi-step processes like SOS escalation, Sentinel check-ins, and data validation across distributed systems.
+
+**Agent Tools (Action Groups)**:
+
+```typescript
+// Bedrock Agent Action Groups
+const bedrockAgentTools = {
+  // Query safety data from DynamoDB
+  getSafetyScore: {
+    description: "Retrieve safety score and factors for an H3 hexagon",
+    parameters: { h3Index: "string", includeNeighbors: "boolean" }
+  },
+  
+  // Broadcast SOS via Beckn Protocol
+  broadcastSOS: {
+    description: "Initiate emergency response via Beckn Gateway",
+    parameters: { location: "coordinates", emergencyType: "string", severity: "string" }
+  },
+  
+  // Rank responders using multi-factor analysis
+  rankResponders: {
+    description: "Analyze and rank available responders",
+    parameters: { responders: "array", userLocation: "coordinates", emergencyType: "string" }
+  },
+  
+  // Calculate safe routes
+  calculateSafeRoute: {
+    description: "Compute safety-optimized navigation route",
+    parameters: { origin: "coordinates", destination: "coordinates", safetyWeight: "number" }
+  },
+  
+  // Translate and synthesize speech
+  synthesizeSpeech: {
+    description: "Generate audio response in user's language",
+    parameters: { text: "string", language: "string", usePolly: "boolean" }
+  }
+}
+```
+
+**Agent Workflow Example (SOS Broadcast)**:
+
+```
+User Voice Input (Hindi): "मदद चाहिए, कोई मेरा पीछा कर रहा है"
+↓
+Bhashini Translation: "Need help, someone is following me"
+↓
+Bedrock Agent Reasoning:
+  1. Classify intent: SOS (confidence: 0.98)
+  2. Extract context: Emergency type = SAFETY_THREAT, Severity = HIGH
+  3. Query current location safety score from DynamoDB
+  4. Analyze time of day (10:30 PM) and historical incident patterns
+  5. Generate Beckn search intent with contextual tags
+  6. Broadcast via Beckn Gateway to responders within 5km
+  7. Collect on_search responses
+  8. Rank responders using multi-factor reasoning:
+     - Proximity (30% weight)
+     - Reputation score (25% weight)
+     - Response time history (20% weight)
+     - Specialization match (15% weight)
+     - Current availability (10% weight)
+  9. Present top 3 responders to user with natural language explanations
+  10. Monitor response acceptance and escalate if no response in 2 minutes
+↓
+User sees ranked responders with explanations in Hindi via Bhashini TTS
+```
+
+**Bedrock Agent Configuration**:
+
+```typescript
+// Lambda function for Bedrock Agent action group
+export const bedrockAgentHandler = async (event: any) => {
+  const { actionGroup, function: functionName, parameters } = event
+
+  switch (functionName) {
+    case 'getSafetyScore':
+      return await dynamoDB.get({
+        TableName: 'SafetyHexagons',
+        Key: { h3Index: parameters.h3Index }
+      })
+    
+    case 'broadcastSOS':
+      const becknService = new BecknService()
+      return await becknService.broadcastSOS({
+        location: parameters.location,
+        h3Index: h3Service.coordinatesToH3(...parameters.location, 9),
+        emergencyType: parameters.emergencyType,
+        severity: parameters.severity
+      })
+    
+    case 'rankResponders':
+      // Multi-factor ranking algorithm
+      const rankedResponders = parameters.responders.map(responder => ({
+        ...responder,
+        score: calculateResponderScore(responder, parameters)
+      })).sort((a, b) => b.score - a.score)
+      
+      return rankedResponders.slice(0, 3)
+    
+    // ... other action handlers
+  }
+}
+```
 
 ## Components and Interfaces
 
