@@ -40,25 +40,25 @@ MargMitra combines government-backed Digital Public Infrastructure (Bhashini for
 
 ## Key Features
 
-🗣️ **Vernacular Voice-First**  
+ **Vernacular Voice-First**  
 Speak in Hindi, Tamil, Bhojpuri, or 10+ Indian languages. Bhashini translates, Amazon Bedrock understands intent, and you get help—no typing, no English required.
 
-📡 **Offline Sovereignty**  
+ **Offline Sovereignty**  
 Progressive Web App with service workers caches safety maps and data locally. Works even when internet is unavailable using edge AI for voice processing.
 
-🌐 **Decentralized Emergency Response**  
+ **Decentralized Emergency Response**  
 Beckn Protocol broadcasts SOS signals to volunteers, private security, NGOs, and government agencies simultaneously—whoever can respond fastest gets there first.
 
-🗺️ **Hexagonal Safety Intelligence**  
+ **Hexagonal Safety Intelligence**  
 H3 spatial indexing divides cities into safety hexagons. Real-time scores based on crime data, streetlight density, crowd patterns, and infrastructure proximity.
 
-🛣️ **Safe Route Navigation**  
+ **Safe Route Navigation**  
 AI calculates routes optimized for safety, not just speed. Choose between fastest route and safest route with clear time-vs-safety tradeoffs.
 
-🤖 **Proactive Sentinel Mode**  
+ **Proactive Sentinel Mode**  
 If you're stationary in a high-risk area for 5+ minutes, the system automatically checks on you. No response? Emergency services are notified.
 
-🔒 **Privacy by Design**  
+ **Privacy by Design**  
 Location data anonymized using H3 hexagons. End-to-end encryption. No raw GPS coordinates stored. You control your data.
 
 ---
@@ -76,8 +76,8 @@ flowchart TB
     end
     
     subgraph IndiaStack["India Stack DPI"]
-        Bhashini[🎤 Bhashini API<br/>ASR/TTS]
-        Beckn[📡 Beckn Protocol<br/>Decentralized Discovery]
+        Bhashini[ Bhashini API<br/>ASR/TTS]
+        Beckn[ Beckn Protocol<br/>Decentralized Discovery]
     end
     
     subgraph AWS["AWS Services"]
