@@ -82,7 +82,7 @@ flowchart TB
     
     subgraph AWS["AWS Services"]
         Bedrock[ Amazon Bedrock<br/>Claude 3.5 Sonnet<br/>Intent Reasoning]
-        Lambda[⚡ AWS Lambda<br/>Serverless Compute]
+        Lambda[AWS Lambda<br/>Serverless Compute]
         DynamoDB[ DynamoDB<br/>Safety Hexagons]
         S3[ S3<br/>Map Tiles]
         Transcribe[ AWS Transcribe<br/>Fallback ASR]
@@ -91,7 +91,7 @@ flowchart TB
     
     subgraph Spatial["Spatial Intelligence"]
         PostGIS[ PostgreSQL PostGIS<br/>Route Calculation]
-        H3[⬡ H3 Hexagons<br/>Safety Bucketing]
+        H3[ H3 Hexagons<br/>Safety Bucketing]
     end
     
     subgraph Responders["Emergency Network"]
