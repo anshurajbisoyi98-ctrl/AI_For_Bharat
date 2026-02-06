@@ -8,7 +8,7 @@
 ![AI for Bharat](https://img.shields.io/badge/hackathon-AI%20for%20Bharat-red)
 
 <!-- TODO: Replace with actual demo GIF/video -->
-![Demo](https://via.placeholder.com/800x400?text=Demo+Video+Coming+Soon)
+![Demo]([https://via.placeholder.com/800x400?text=Demo+Video+Coming+Soon](https://hasty-dice-51250821.figma.site/))
 
 ---
 
