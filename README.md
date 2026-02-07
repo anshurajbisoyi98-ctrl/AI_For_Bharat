@@ -5,8 +5,8 @@
 ![Status](https://img.shields.io/badge/status-prototype-blue)
 ![Stack](https://img.shields.io/badge/stack-AWS%20Bedrock%20%7C%20Bhashini%20%7C%20Beckn-orange)
 ![AI for Bharat](https://img.shields.io/badge/hackathon-AI%20for%20Bharat-red)
-
-
+## ⚠️ Submission Notice: Prototype & Architecture
+**Please Note to Judges & Reviewers**  This repository contains the demonstration prototype / frontend interface of the MargMitra Sentinel ecosystem. It is intended to visualize the user experience and core workflows for the [AI for Bharat]. The full backend infrastructure, including proprietary algorithms and data processing pipelines, is hosted separately to maintain security and intellectual property integrity.Actual app will be showcases upon selection and presentation
 
 ## Why This Matters
 
